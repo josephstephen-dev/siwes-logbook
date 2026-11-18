@@ -1,0 +1,21 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% block content %}
+{% set m = {
+  'expired': ['This link has expired.', 'Ask your coordinator for a new one.'],
+  'closed': ['Sign-ups with this link are closed.', 'Ask your coordinator for a new link.'],
+  'full': ['This link has reached its limit.', 'Ask your coordinator for a new link.'],
+  'used': ['This link has already been used.', 'If you already created your account, sign in.'],
+  'invalid': ['This link is not valid.', 'Check that you copied the whole link.'],
+  'verify': ['This confirmation link has expired.', 'Request a new one and we will email it again.']
+}[reason] %}
+<section class="card auth-card">
+  <h1>{{ m[0] }}</h1>
+  <p class="muted">{{ m[1] }}</p>
+  {% if reason == 'verify' %}
+    <a class="btn primary" href="{{ url_for('invite.resend_verification') }}">Send a new link</a>
+  {% else %}
+    <a class="btn primary" href="{{ url_for('auth.role_chooser') }}">Go to sign in</a>
+  {% endif %}
+</section>
+{% endblock %}
