@@ -1,0 +1,24 @@
+<!doctype html>
+{% extends "base.html" %}
+{% block body %}
+{% include "components/_topbar.html" %}
+<div class="shell">
+  <aside class="sidebar" aria-label="Main menu">
+    <div class="side-user">
+      <span class="avatar">{{ initials(current_user.full_name) }}</span>
+      <div><strong>{{ current_user.full_name }}</strong><small>{{ current_user.role_label }}</small></div>
+    </div>
+    {% include "components/_sidebar_" ~ current_user.role ~ ".html" %}
+    {% if current_user.role == 'student' %}{% set pc = placement_card(current_user) %}{% if pc %}
+    <div class="side-card"><p class="side-label">Current placement</p><strong>{{ pc.company }}</strong><small>Week {{ pc.week }} of {{ pc.total }}</small></div>
+    {% endif %}{% endif %}
+        <a class="side-help" href="{{ url_for('meta.help_page') }}"><strong>Need help?</strong>
+      <small>{{ 'Contact the site administrator' if current_user.role == 'coordinator' else 'Contact your coordinator' }}</small></a>
+  </aside>
+  <main class="main">
+    <div id="offline-banner" class="banner warn" role="status" hidden>You're offline. Drafts are kept on this device. <button type="button" id="banner-retry" class="link-btn">Back online</button></div>
+    {% include "components/_flash.html" %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% endblock %}
