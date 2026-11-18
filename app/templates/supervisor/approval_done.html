@@ -1,0 +1,10 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% block title %}Week approved{% endblock %}
+{% block content %}
+<section class="card done-card">
+  <h1>Week {{ wk.week_no }} approved and sealed</h1>
+  <p class="muted">{{ wk.student.full_name }}'s entries for this week are now locked. Approved on {{ wk.approved_at|lagos }}.</p>
+  <a class="btn primary" href="{{ url_for('supervisor.pending_weeks') }}">Back to my weeks</a>
+</section>
+{% endblock %}
