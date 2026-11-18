@@ -1,0 +1,27 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% from "components/_field.html" import field %}
+{% from "components/_password_fields.html" import password_fields %}
+{% block title %}Set up SIWES Logbook{% endblock %}
+{% block content %}
+<section class="card auth-card coordinator">
+  <p class="eyebrow">First-time setup</p>
+  <h1>Create the first coordinator</h1>
+  {% if not enabled %}
+    <div class="banner info">Setup is locked. The site owner must add a <code>SETUP_TOKEN</code> to the server settings first.</div>
+  {% else %}
+    <p class="muted">Enter the setup key from your server settings. This page disappears once the first coordinator exists.</p>
+    {% if error %}<div class="banner error" role="alert">{{ error }}</div>{% endif %}
+    {% if problems %}<div class="banner error" role="alert">Your password needs:<ul>{% for p in problems %}<li>{{ p }}</li>{% endfor %}</ul></div>{% endif %}
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      {{ field(form.token, autocomplete="off") }}
+      {{ field(form.full_name, autocomplete="name") }}
+      {{ field(form.email, type="email", autocomplete="email") }}
+      {{ password_fields(form) }}
+      <button class="btn primary" type="submit">Create coordinator account</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/password_toggle.js') }}"></script>{% endblock %}
