@@ -1,0 +1,73 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_status_chip.html" import chip %}
+{% block title %}Staff{% endblock %}
+{% block content %}
+{% macro act(endpoint, id, label, cls='') %}
+<form method="post" action="{{ url_for(endpoint, user_id=id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="link-btn {{ cls }}" type="submit">{{ label }}</button>
+</form>
+{% endmacro %}
+<p class="eyebrow">Accounts and access</p>
+<h1>Staff</h1>
+<p class="muted">New coordinators sign up with a staff code. They can only sign in after one of you approves them.</p>
+
+<div class="card">
+  <h2>Staff sign-up code</h2>
+  {% if new_code %}
+    <div class="banner success">
+      <strong>Your new code. It is shown only once.</strong>
+      <div class="copy-row">
+        <input type="text" id="staff-code" value="{{ new_code }}" readonly aria-label="Staff code">
+        <button type="button" class="btn" data-copy="staff-code">Copy</button>
+      </div>
+      <p class="small">Send it to your colleague separately from the link below. It stops working on {{ code_until.strftime('%d %b %Y') }}.</p>
+    </div>
+  {% elif code_until %}
+    <p class="muted">A code is active until {{ code_until.strftime('%d %b %Y') }}. For safety it can't be shown again. Generate a new one if you need it (the old one stops working).</p>
+  {% else %}
+    <p class="muted">No active code. Colleagues can't sign up until you generate one.</p>
+  {% endif %}
+  <p class="muted small">Sign-up page for new coordinators:</p>
+  <div class="copy-row">
+    <input type="text" id="staff-link" value="{{ staff_link }}" readonly aria-label="Staff sign-up page">
+    <button type="button" class="btn" data-copy="staff-link">Copy</button>
+  </div>
+  <div class="actions-row">
+    {% if code_until %}
+    <form method="post" action="{{ url_for('coordinator.staff_code_revoke') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn" type="submit">Switch off</button>
+    </form>
+    {% endif %}
+    <form method="post" action="{{ url_for('coordinator.staff_code_new') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn primary" type="submit">{{ 'Generate a new code' if code_until else 'Generate a code' }}</button>
+    </form>
+  </div>
+</div>
+
+<div class="card table-card" style="margin-top:16px">
+  <div class="table-wrap"><table>
+    <thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for u in rows %}
+      <tr>
+        <td><strong>{{ u.full_name }}</strong>{% if u.id == current_user.id %} <small class="muted">(you)</small>{% endif %}</td>
+        <td>{{ u.email }}</td>
+        <td>{{ chip('Pending approval' if u.status == 'pending' else 'Unconfirmed email' if u.status == 'unverified' else 'Inactive' if u.status == 'deactivated' else 'Active') }}</td>
+        <td class="actions">
+          {% if u.status == 'unverified' %}{{ act('coordinator.account_verify_link', u.id, 'Confirmation link') }}
+          {% elif u.status == 'pending' %}{{ act('coordinator.staff_approve', u.id, 'Approve') }}
+          {% elif u.status == 'active' and u.id != current_user.id %}
+            {{ act('coordinator.staff_reset_link', u.id, 'Reset link') }}
+            {{ act('coordinator.staff_deactivate', u.id, 'Deactivate', 'danger') }}
+          {% elif u.status == 'deactivated' %}{{ act('coordinator.staff_reactivate', u.id, 'Reactivate') }}{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}
