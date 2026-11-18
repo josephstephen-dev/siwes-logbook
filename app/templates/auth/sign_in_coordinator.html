@@ -1,0 +1,6 @@
+<!doctype html>
+{% extends "auth/sign_in_student.html" %}
+{% block role_name %}Coordinator{% endblock %}
+{% block accent %}coordinator{% endblock %}
+{% block intro %}Use the details linked to your staff account.{% endblock %}
+{% block extra %}<p class="muted small">New staff member? <a class="link" href="{{ url_for('invite.join_staff') }}">Create your coordinator account</a> with the staff code.</p>{% endblock %}
