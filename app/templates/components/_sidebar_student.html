@@ -1,0 +1,9 @@
+<!doctype html>
+{% set ep = request.endpoint or '' %}
+<nav class="side-nav">
+  <p class="side-label">Workspace</p>
+  <a class="{{ 'active' if ep == 'student.home' }}" href="{{ url_for('student.home') }}">Home</a>
+  <a class="{{ 'active' if ep.startswith('student.supervisor') }}" href="{{ url_for('student.supervisor') }}">My supervisor</a>
+  <a class="{{ 'active' if ep.startswith('student.my_logbook') or ep.startswith('student.week') or ep.startswith('student.entry') }}" href="{{ url_for('student.my_logbook') }}">My Logbook</a>
+  <a class="{{ 'active' if ep == 'student.logbook_details' }}" href="{{ url_for('student.logbook_details') }}">Logbook details</a>
+</nav>
