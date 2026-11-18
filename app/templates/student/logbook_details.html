@@ -1,0 +1,27 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_status_chip.html" import chip %}
+{% block title %}Logbook details{% endblock %}
+{% block content %}
+{% set u = current_user %}
+<p class="eyebrow">Front pages</p>
+<div class="page-head"><h1>Logbook details</h1>{{ chip('Confirmed' if p else 'Draft') }}</div>
+<p class="muted">Placement and supervision information for this training period.</p>
+<div class="card">
+  <div class="details-head"><span class="logo" aria-hidden="true">▯</span>
+    <div><small class="muted">STUDENT INDUSTRIAL WORK EXPERIENCE SCHEME</small><h2>Industrial Training Logbook</h2></div></div>
+  <dl class="details">
+    <div><dt>Student name</dt><dd>{{ u.full_name }}</dd></div>
+    <div><dt>Matric number</dt><dd>{{ u.matric_number }}</dd></div>
+    <div><dt>Department</dt><dd>{{ u.department }}</dd></div>
+    <div><dt>Level</dt><dd>{{ u.level }} Level</dd></div>
+    <div><dt>Company name</dt><dd>{{ p.company_name if p else 'Not set yet' }}</dd></div>
+    <div><dt>Company address</dt><dd>{{ (p.company_address if p else '') or '—' }}</dd></div>
+    <div><dt>Industry supervisor</dt><dd>{{ u.industry_supervisor.full_name if u.industry_supervisor else 'Not linked yet' }}</dd></div>
+    <div><dt>Supervisor phone</dt><dd>{{ (u.industry_supervisor.phone if u.industry_supervisor else '') or '—' }}</dd></div>
+    <div><dt>School supervisor</dt><dd>{{ (p.school_supervisor if p else '') or 'Not assigned yet' }}</dd></div>
+    <div><dt>Training period</dt><dd>{% if p %}{{ p.start_date.strftime('%d %B %Y') }} – {{ p.end_date.strftime('%d %B %Y') }}{% else %}—{% endif %}</dd></div>
+  </dl>
+  <div class="banner info"><strong>Need to change these details?</strong> Contact your SIWES coordinator. Confirmed placement details cannot be edited by students.</div>
+</div>
+{% endblock %}
