@@ -1,0 +1,15 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% block title %}Privacy{% endblock %}
+{% block content %}
+<section class="card auth-card legal" style="max-width:760px">
+  <h1>Privacy notice</h1>
+  <p class="muted">Last updated: [date]. Controller: [your organisation and contact email].</p>
+  <h2>What we keep</h2><p>Names, matric numbers, department and level, email, phone number, the logbook entries, sketches and comments students and supervisors write, and sign-in activity.</p>
+  <h2>Why</h2><p>Only to run the SIWES logbook: let students write entries, let supervisors approve them, let coordinators monitor progress and issue a verified logbook.</p>
+  <h2>Who sees it</h2><p>A student sees their own records. A supervisor sees the students they supervise. Coordinators see all students on their programme. The public verification page shows only the company, dates, student initials and the last three digits of the matric number.</p>
+  <h2>Keeping it safe</h2><p>Passwords are stored as one-way hashes. Records are sealed so changes can be detected. Backups are kept for [period].</p>
+  <h2>How long</h2><p>[retention period, for example until the logbook is finalised plus X years].</p>
+  <h2>Your rights</h2><p>You can ask to see, correct or delete your data by contacting [email]. Some records must be kept for the approval history.</p>
+</section>
+{% endblock %}
