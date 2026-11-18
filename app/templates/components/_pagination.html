@@ -1,0 +1,13 @@
+<!doctype html>
+{% macro pager(p) %}
+{% if p.pages > 1 %}
+<nav class="pager" aria-label="Pages">
+  <span class="small muted">{{ p.total }} in total</span>
+  <div>
+    {% for n in range(1, p.pages + 1) %}
+      <a class="{{ 'on' if n == p.page }}" href="{{ url_for(request.endpoint, **dict(request.args.to_dict(), page=n)) }}">{{ n }}</a>
+    {% endfor %}
+  </div>
+</nav>
+{% endif %}
+{% endmacro %}
