@@ -1,0 +1,26 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_status_chip.html" import chip %}
+{% from "components/_stat_card.html" import stat %}
+{% block title %}My Logbook{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">{{ p.total_weeks }}-week placement</p><h1>My Logbook</h1>
+    <p class="muted">Open a week to view its progress chart, sketches and sign-off.</p></div>
+  <label class="jump"><span class="sr">Jump to week</span>
+    <select onchange="if(this.value)location.href=this.value">
+      <option value="">Jump to week…</option>
+      {% for i in items %}<option value="{{ url_for('student.week_chart', n=i.n) }}">Week {{ i.n }}</option>{% endfor %}
+    </select></label>
+</div>
+<div class="stats">{{ stat("Weeks started", stats.started) }}{{ stat("Entries recorded", stats.recorded) }}{{ stat("Weeks approved", stats.approved) }}</div>
+<div class="card table-card">
+  {% for i in items %}
+  <a class="week-row" href="{{ url_for('student.week_chart', n=i.n) }}">
+    <span class="wk-no">{{ i.n }}</span>
+    <span><strong>Week {{ i.n }}</strong><br><small class="muted">{{ i.start.strftime('%d') }}–{{ i.end.strftime('%d %b %Y') }}</small><br><small class="muted">{{ i.done }} of {{ i.total }} daily entries recorded</small></span>
+    {{ chip(i.label) }}
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}
