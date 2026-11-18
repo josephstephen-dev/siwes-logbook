@@ -1,0 +1,32 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% block title %}{{ 'Amend' if amend else 'Write' }} entry{% endblock %}
+{% block content %}
+<p class="eyebrow">My Logbook / Week {{ n }}</p>
+<h1>{{ label }} {{ d.strftime('%d %B %Y') }}</h1>
+{% if late %}<div class="banner warn"><strong>This will be marked as a late entry</strong> because the day has already passed.</div>{% endif %}
+{% if amend %}<div class="banner info">Your earlier version stays in the history. Amending adds a new version and never deletes anything.</div>{% endif %}
+<form id="entry-form" class="card" method="post" novalidate>
+  {{ form.hidden_tag() }}
+  <label for="entry-body">Description of work done</label>
+  {{ form.body(id="entry-body", rows=10, data_draft_key=draft_key, data_min=min_chars, data_max=max_chars) }}
+  {% for e in form.body.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+  <div class="entry-meta">
+    <span id="save-state" class="small muted">Not saved yet</span>
+    <span id="counter" class="small muted">0 / {{ max_chars }}</span>
+  </div>
+  <p class="help" id="min-hint">Write at least {{ min_chars }} characters: what you did, the tools you used and what you learned.</p>
+  <div class="actions-row">
+    <a class="btn" href="{{ url_for('student.week_chart', n=n) }}">Cancel</a>
+    <button type="button" id="open-confirm" class="btn primary" disabled>{{ 'Save amendment' if amend else 'Submit entry' }}</button>
+  </div>
+</form>
+<dialog id="confirm-dialog" aria-labelledby="dlg-title">
+  <h2 id="dlg-title">{{ 'Save this amendment?' if amend else 'Record this entry?' }}</h2>
+  <p>{% if amend %}The new text becomes the current entry. Your earlier version is kept in the history.{% else %}Once recorded, this entry can only be amended later. It can't be deleted.{% endif %}</p>
+  <div class="actions-row">
+    <button type="button" class="btn" id="cancel-confirm">Go back</button>
+    <button type="submit" form="entry-form" class="btn primary" id="confirm-submit">{{ 'Yes, save it' if amend else 'Yes, record it' }}</button>
+  </div>
+</dialog>
+{% endblock %}
