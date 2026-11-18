@@ -1,0 +1,18 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% from "components/_field.html" import field %}
+{% block title %}Send the link again{% endblock %}
+{% block content %}
+<section class="card auth-card">
+  <h1>Send the confirmation link again</h1>
+  {% if sent %}
+    <div class="banner info">If an unconfirmed account uses that email, a new link has been sent.</div>
+  {% else %}
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      {{ field(form.email, type="email", autocomplete="email") }}
+      <button class="btn primary" type="submit">Send link</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}
