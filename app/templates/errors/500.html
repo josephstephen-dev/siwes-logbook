@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+{% extends "layouts/public.html" %}
+{% block title %}Something went wrong{% endblock %}
+{% block content %}
+<section class="card auth-card"><h1>Something went wrong on our side.</h1>
+  <p class="muted">Please try again in a moment. If it keeps happening, tell your coordinator.</p>
+  <a class="btn primary" href="{{ url_for('auth.role_chooser') }}">Go to the home page</a></section>
+{% endblock %}
