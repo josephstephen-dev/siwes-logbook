@@ -1,0 +1,15 @@
+.role-cards { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin: 32px 0; }
+.role-card { display: block; background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--primary); border-radius: var(--radius); padding: 24px; color: inherit; text-decoration: none; }
+.role-card.supervisor { border-top-color: var(--supervisor); }
+.role-card.coordinator { border-top-color: var(--coordinator); }
+.auth-card { max-width: 600px; margin: 16px auto; }
+.auth-card.supervisor .eyebrow { color: var(--supervisor); }
+.auth-card.coordinator .eyebrow { color: var(--coordinator); }
+.auth-card.supervisor .btn.primary { background: var(--supervisor); border-color: var(--supervisor); }
+.auth-card.coordinator .btn.primary { background: var(--coordinator); border-color: var(--coordinator); }
+.back { display: block; max-width: 600px; margin: 0 auto 8px; color: var(--ink); font-weight: 600; text-decoration: none; }
+.pw-wrap { position: relative; }
+.pw-toggle { position: absolute; right: 8px; top: 6px; min-height: 36px; border: 0; background: none; color: var(--primary); font-weight: 700; cursor: pointer; }
+.check { display: flex; gap: 10px; align-items: center; font-weight: 600; }
+.check input { width: 20px; height: 20px; }
+.help { margin: 0 0 20px 30px; font-size: .85rem; color: var(--muted); }
