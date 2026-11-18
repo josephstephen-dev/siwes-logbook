@@ -1,0 +1,21 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% block title %}Review flag{% endblock %}
+{% block content %}
+<p class="eyebrow">Flag review</p>
+<h1>Similarity score {{ (f.score * 100)|round|int }}%</h1>
+<div class="banner info"><strong>Possible similarity: review, not proof.</strong> Common tasks in the same company can read alike. Read both entries before deciding.</div>
+<div class="compare">
+  <div class="card"><h2>{{ f.entry_a.student.full_name }}</h2><small class="muted">{{ f.entry_a.work_date.strftime('%A %d %B %Y') }}</small><p class="entry-text">{{ a_html }}</p></div>
+  <div class="card"><h2>{{ f.entry_b.student.full_name }}</h2><small class="muted">{{ f.entry_b.work_date.strftime('%A %d %B %Y') }}</small><p class="entry-text">{{ b_html }}</p></div>
+</div>
+{% if f.status != 'open' %}
+  <div class="banner {{ 'warn' if f.status == 'confirmed' else 'success' }}"><strong>{{ f.status|capitalize }}</strong> by {{ f.reviewer.full_name if f.reviewer }} on {{ f.reviewed_at|lagos }}.<br>{{ f.note }}</div>
+{% else %}
+<form class="card" method="post" action="{{ url_for('coordinator.flag_decide', flag_id=f.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label for="note">Note (required)</label><textarea id="note" name="note" rows="3" required minlength="5" maxlength="1000" placeholder="What did you find?"></textarea>
+  <div class="actions-row"><button class="btn" type="submit" name="decision" value="dismiss">Dismiss</button><button class="btn primary" type="submit" name="decision" value="confirm">Confirm</button></div>
+</form>
+{% endif %}
+{% endblock %}
