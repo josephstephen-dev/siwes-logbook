@@ -1,0 +1,8 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% block title %}You're offline{% endblock %}
+{% block content %}
+<section class="card auth-card"><h1>You're offline.</h1>
+  <p class="muted">Check your connection and try again. Entries you were typing are kept on this device.</p>
+  <button class="btn primary" onclick="location.reload()">Try again</button></section>
+{% endblock %}
