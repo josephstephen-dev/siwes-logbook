@@ -1,0 +1,21 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% block title %}Check a PDF{% endblock %}
+{% block content %}
+<section class="card auth-card">
+  <h1>Check a PDF</h1>
+  <p class="muted">Upload the PDF file you received. We will tell you if it matches the issued copy.</p>
+  {% if result %}
+    {% if result.state == 'match' %}<div class="banner success"><strong>This file matches the issued copy</strong> ({{ result.vid }}). <a href="{{ url_for('verify.result', vid=result.vid) }}">See the record</a>.</div>
+    {% elif result.state == 'replaced' %}<div class="banner warn">This file was issued but has since been replaced by a newer copy.</div>
+    {% elif result.state == 'none' %}<div class="banner error">Choose a PDF file first.</div>
+    {% else %}<div class="banner error"><strong>This file does not match any issued copy.</strong></div>{% endif %}
+  {% endif %}
+  <form method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="file" name="file" accept="application/pdf,.pdf" required>
+    <button class="btn primary" type="submit">Check file</button>
+  </form>
+  <p class="muted small">A printed copy can only be checked against this record. Scan its QR code instead.</p>
+</section>
+{% endblock %}
