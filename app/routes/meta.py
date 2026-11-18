@@ -1,0 +1,78 @@
+import json
+
+from flask import (Blueprint, Response, current_app, render_template,
+                   send_from_directory)
+from flask_login import current_user, login_required
+from sqlalchemy import text
+
+from ..extensions import db
+from ..models.user import User
+from ..services.invitations import public_url
+
+bp = Blueprint("meta", __name__)
+
+
+@bp.route("/robots.txt")
+def robots():
+    body = "\n".join([
+        "User-agent: *",
+        "Disallow: /student/", "Disallow: /supervisor/", "Disallow: /coordinator/",
+        "Disallow: /join/", "Disallow: /files/", "Disallow: /setup", "Disallow: /reset-password/",
+        "Allow: /v/check", "Disallow: /v/",
+        f"Sitemap: {public_url('meta.sitemap')}", ""])
+    return Response(body, mimetype="text/plain")
+
+
+@bp.route("/sitemap.xml")
+def sitemap():
+    urls = [public_url("auth.role_chooser"), public_url("verify.check_pdf"), public_url("meta.privacy")]
+    xml = ('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+           + "".join(f"<url><loc>{u}</loc></url>" for u in urls) + "</urlset>")
+    return Response(xml, mimetype="application/xml")
+
+
+@bp.route("/healthz")
+def healthz():
+    try:
+        db.session.execute(text("select 1"))
+        return {"status": "ok"}
+    except Exception:
+        return {"status": "error"}, 503
+
+
+@bp.route("/privacy")
+def privacy():
+    return render_template("meta/privacy.html")
+
+
+@bp.route("/help")
+@login_required
+def help_page():
+    cfg = current_app.config
+    coords = []
+    if current_user.role != "coordinator":
+        coords = User.query.filter_by(role="coordinator", status="active").order_by(User.full_name).all()
+    return render_template("meta/help.html", coords=coords, email=cfg["SUPPORT_EMAIL"],
+                           phone=cfg["SUPPORT_PHONE"], wa=cfg["SUPPORT_WHATSAPP"].lstrip("+"))
+
+
+@bp.route("/manifest.webmanifest")
+def manifest():
+    data = {"name": current_app.config["APP_NAME"], "short_name": "SIWES", "start_url": "/", "scope": "/",
+            "display": "standalone", "background_color": "#f6f7f5", "theme_color": "#1b5e44",
+            "icons": [{"src": "/static/img/icon-192.png", "sizes": "192x192", "type": "image/png"},
+                      {"src": "/static/img/icon-512.png", "sizes": "512x512", "type": "image/png"}]}
+    return Response(json.dumps(data), mimetype="application/manifest+json")
+
+
+@bp.route("/sw.js")
+def service_worker():
+    resp = send_from_directory(current_app.static_folder, "js/sw.js", mimetype="application/javascript")
+    resp.headers["Service-Worker-Allowed"] = "/"
+    resp.headers["Cache-Control"] = "no-cache"
+    return resp
+
+
+@bp.route("/offline")
+def offline():
+    return render_template("meta/offline.html")
