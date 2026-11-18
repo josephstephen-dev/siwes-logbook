@@ -1,0 +1,28 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% from "components/_field.html" import field %}
+{% from "components/_password_fields.html" import password_fields %}
+{% block title %}Coordinator sign-up{% endblock %}
+{% block content %}
+<section class="card auth-card coordinator">
+  <p class="eyebrow">Coordinator access</p>
+  <h1>Create a coordinator account</h1>
+  {% if not enabled %}
+        <div class="banner info">Staff sign-up is closed right now. Ask a coordinator to generate a new staff code.</div>
+  {% else %}
+    <p class="muted">You need the staff code. Another coordinator must approve your account before you can sign in.</p>
+    {% if error %}<div class="banner error" role="alert">{{ error }}</div>{% endif %}
+    {% if problems %}<div class="banner error" role="alert">Your password needs:<ul>{% for p in problems %}<li>{{ p }}</li>{% endfor %}</ul></div>{% endif %}
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      {{ field(form.full_name, autocomplete="name") }}
+      {{ field(form.email, type="email", autocomplete="email") }}
+      {{ field(form.code, autocomplete="off", placeholder="XXXX-XXXX-XXXX") }}
+      {{ password_fields(form) }}
+      <button class="btn primary" type="submit">Request access</button>
+    </form>
+  {% endif %}
+  <p class="muted small"><a class="link" href="{{ url_for('auth.sign_in_coordinator') }}">Back to coordinator sign in</a></p>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/password_toggle.js') }}"></script>{% endblock %}
