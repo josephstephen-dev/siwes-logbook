@@ -1,0 +1,37 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% block title %}Help{% endblock %}
+{% block content %}
+<p class="eyebrow">Support</p><h1>Need help?</h1>
+{% if current_user.role == 'coordinator' %}
+  <div class="card"><h2>Site administrator</h2>
+    {% if email or phone or wa %}
+      <p class="muted">The person who runs this site can help with sign-in lockouts, email problems and anything that looks broken.</p>
+      {% if email %}<p><a class="btn" href="mailto:{{ email }}">Email {{ email }}</a></p>{% endif %}
+      {% if phone %}<p><a class="btn" href="tel:{{ phone }}">Call {{ phone }}</a></p>{% endif %}
+      {% if wa %}<p><a class="btn" href="https://wa.me/{{ wa }}" target="_blank" rel="noopener">Message on WhatsApp</a></p>{% endif %}
+    {% else %}<div class="banner warn">No support contact is set. Add SUPPORT_EMAIL, SUPPORT_PHONE or SUPPORT_WHATSAPP to the server settings.</div>{% endif %}
+  </div>
+{% else %}
+  <div class="card"><h2>Your SIWES coordinator</h2>
+    {% for c in coords %}<p><strong>{{ c.full_name }}</strong><br><a class="link" href="mailto:{{ c.email }}">{{ c.email }}</a></p>
+    {% else %}<p class="muted">No coordinator is available yet.</p>{% endfor %}
+    {% if wa %}<p><a class="btn" href="https://wa.me/{{ wa }}" target="_blank" rel="noopener">Message on WhatsApp</a></p>{% endif %}
+  </div>
+{% endif %}
+<div class="card" style="margin-top:16px"><h2>Common questions</h2>
+  {% if current_user.role == 'student' %}
+    <p><strong>I can't sign in.</strong> Use matric number or email, then "Forgot password?" if needed.</p>
+    <p><strong>My placement isn't set up.</strong> Your coordinator must create it. Contact them above.</p>
+    <p><strong>My supervisor didn't get the link.</strong> Open "My supervisor", copy the link and send it yourself on WhatsApp.</p>
+    <p><strong>I missed a day.</strong> Write it anyway. It will be marked as a late entry.</p>
+  {% elif current_user.role == 'supervisor' %}
+    <p><strong>I can't approve a week.</strong> Your coordinator must phone you first to confirm your identity.</p>
+    <p><strong>I can't find a week.</strong> Only weeks the student has sent for approval appear on your page.</p>
+  {% else %}
+    <p><strong>A student used the wrong matric number.</strong> Accounts, then Remove (only works before a placement exists).</p>
+    <p><strong>A colleague is locked out.</strong> Staff, then Reset link.</p>
+    <p><strong>All coordinators are locked out.</strong> The server owner can run <code>flask reset-coordinator-password</code>.</p>
+  {% endif %}
+</div>
+{% endblock %}
