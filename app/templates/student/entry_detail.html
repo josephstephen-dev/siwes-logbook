@@ -1,0 +1,28 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_status_chip.html" import chip %}
+{% block title %}Entry{% endblock %}
+{% block content %}
+<div data-clear-draft="{{ draft_keys }}" hidden></div>
+<p class="eyebrow">My Logbook / Week {{ n }}</p>
+<div class="page-head"><h1>{{ label }} {{ e.work_date.strftime('%d %B %Y') }}</h1>
+  <div>{{ chip('Returned for correction' if e.status == 'returned' else 'Recorded') }}
+  {% if e.is_late %}{{ chip('Late entry') }}{% endif %}
+  <span class="chip ok"><span class="dot"></span>{{ 'Recorded and sealed' if e.sealed else 'Recorded' }}</span></div></div>
+{% if e.status == 'returned' %}<div class="banner warn"><strong>Your supervisor's comment</strong><br>{{ e.return_comment }}</div>{% endif %}
+<div class="card"><h2>Description of work done</h2><p class="entry-text">{{ e.body }}</p>
+  <div class="actions-row">
+    <a class="btn" href="{{ url_for('student.week_chart', n=n) }}">Back to the week</a>
+    {% if not locked %}<a class="btn primary" href="{{ url_for('student.entry_amend', day=e.work_date.isoformat()) }}">Amend entry</a>{% endif %}
+  </div>
+  {% if locked %}<p class="muted small">This entry can't be changed because its week is with your supervisor or approved.</p>{% endif %}
+</div>
+<div class="card"><h2>History</h2>
+  <ol class="history">
+    {% for v in e.versions|reverse %}
+      <li><strong>{{ 'Recorded on' if v.version_no == 1 else 'Amended on' }} {{ v.created_at|lagos }}</strong>
+        {% if not loop.first %}<details><summary>Show this version</summary><p class="entry-text">{{ v.body }}</p></details>{% endif %}</li>
+    {% endfor %}
+  </ol>
+</div>
+{% endblock %}
