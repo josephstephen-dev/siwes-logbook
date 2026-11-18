@@ -1,0 +1,17 @@
+<!doctype html>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in messages %}
+    {% if cat == 'link' %}
+      <div class="banner info">
+        <strong>Link ready</strong>
+        <p class="small">Copy it and send it to the person. It expires soon and stops working once used.</p>
+        <div class="copy-row">
+          <input type="text" id="flash-link" value="{{ msg }}" readonly>
+          <button type="button" class="btn" data-copy="flash-link">Copy</button>
+        </div>
+      </div>
+    {% else %}
+      <div class="banner {{ 'error' if cat == 'error' else 'success' if cat == 'success' else 'info' }}" role="status">{{ msg }}</div>
+    {% endif %}
+  {% endfor %}
+{% endwith %}
