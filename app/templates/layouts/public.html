@@ -1,0 +1,13 @@
+<!doctype html>
+{% extends "base.html" %}
+{% block body %}
+<header class="public-bar">
+  <a class="brand" href="{{ url_for('auth.role_chooser') }}"><strong>SIWES</strong> Logbook</a>
+  <button id="theme-toggle" class="icon-btn" type="button" aria-label="Switch theme">◐</button>
+</header>
+<main class="public-main">
+  {% include "components/_flash.html" %}
+  {% block content %}{% endblock %}
+</main>
+<footer class="public-foot"><a href="{{ url_for('meta.privacy') }}">Privacy</a><a href="{{ url_for('verify.check_pdf') }}">Check a logbook</a></footer>
+{% endblock %}
