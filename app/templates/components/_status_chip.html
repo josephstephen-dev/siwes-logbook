@@ -1,0 +1,12 @@
+<!doctype html>
+{% macro chip(label) -%}
+{% set cls = {
+  'Active':'ok','Confirmed':'ok','Open':'ok','Recorded':'ok','Approved':'ok','On track':'ok',
+  'Submitted':'info',
+  'Draft':'neutral','Closed':'neutral','Full':'neutral','Not started':'neutral',
+  'Awaiting check':'warn','Pending approval':'warn','Returned for correction':'warn',
+  'Late entry':'warn','Unconfirmed email':'warn','Watch':'warn',
+  'Expired':'bad','Inactive':'bad','At risk':'bad'
+}.get(label, 'neutral') %}
+<span class="chip {{ cls }}"><span class="dot"></span>{{ label }}</span>
+{%- endmacro %}
