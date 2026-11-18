@@ -1,0 +1,5 @@
+<!doctype html>
+<nav class="tabs" aria-label="Weekly pages">
+  <a class="{{ 'on' if tab == 'chart' }}" href="{{ url_for('student.week_chart', n=n) }}">Progress chart</a>
+  <a class="{{ 'on' if tab == 'sketches' }}" href="{{ url_for('student.week_sketches', n=n) }}">Sketches &amp; sign-off</a>
+</nav>
