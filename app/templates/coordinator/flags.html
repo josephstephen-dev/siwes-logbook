@@ -1,0 +1,18 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_status_chip.html" import chip %}
+{% block title %}Flags{% endblock %}
+{% block content %}
+<p class="eyebrow">Review</p>
+<div class="page-head"><h1>Flags</h1>
+  <form method="post" action="{{ url_for('coordinator.flags_scan') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn" type="submit">Scan now</button></form></div>
+<p class="muted">Entries from different students that share many phrases. This is a prompt to look, not proof of copying.</p>
+<nav class="tabs">{% for s in ['open', 'confirmed', 'dismissed'] %}<a class="{{ 'on' if s == status }}" href="{{ url_for('coordinator.flags', status=s) }}">{{ s|capitalize }} ({{ counts[s] }})</a>{% endfor %}</nav>
+<div class="card table-card">{% if rows %}<div class="table-wrap"><table>
+  <thead><tr><th>Score</th><th>Students</th><th>Entries</th><th></th></tr></thead><tbody>
+  {% for f in rows %}<tr><td><strong>{{ (f.score * 100)|round|int }}%</strong></td>
+    <td>{{ f.entry_a.student.full_name }}<br>{{ f.entry_b.student.full_name }}</td>
+    <td>{{ f.entry_a.work_date.strftime('%d %b') }} · {{ f.entry_b.work_date.strftime('%d %b') }}</td>
+    <td><a class="link" href="{{ url_for('coordinator.flag_review', flag_id=f.id) }}">Review</a></td></tr>{% endfor %}
+</tbody></table></div>{% else %}<p class="empty">Nothing here.</p>{% endif %}</div>
+{% endblock %}
