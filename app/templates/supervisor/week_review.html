@@ -1,0 +1,43 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_paper.html" import page_a, page_b_readonly %}
+{% from "components/_field.html" import field %}
+{% block title %}Review week {{ wk.week_no }}{% endblock %}
+{% block content %}
+<div class="card review-head">
+  <span class="logo" aria-hidden="true">▯</span>
+  <div><strong>{{ app_name }}</strong><br><small class="muted">Signed-in week review</small></div>
+  {% if current_user.is_verified %}<span class="chip ok"><span class="dot"></span>Identity confirmed</span>
+  {% else %}<span class="chip warn"><span class="dot"></span>Identity not confirmed yet</span>{% endif %}
+</div>
+<p class="eyebrow">Supervisor review</p>
+<h1>Review Week {{ wk.week_no }}</h1>
+<p class="muted">{{ st.full_name }} · {{ st.placement.company_name }} · {{ start.strftime('%d') }}–{{ end.strftime('%d %b %Y') }}</p>
+{% if can_return %}<div class="banner info"><strong>Please review all six daily entries.</strong> You can return an individual entry for correction, or approve the complete week below.</div>{% endif %}
+{{ page_a(wk, rows, start, end, 'review', can_return=can_return) }}
+{{ page_b_readonly(wk, end) }}
+
+{% if wk.status == 'approved' %}
+  <div class="banner success">Approved on {{ wk.approved_at|lagos }}. This week is sealed.</div>
+{% elif wk.status == 'returned' %}
+  <div class="banner warn">You returned entries from this week. The student must correct them and send the week again.</div>
+{% elif not current_user.is_verified %}
+  <div class="banner warn"><strong>Your identity hasn't been confirmed yet.</strong> Your coordinator will phone you. You can approve after that.</div>
+{% endif %}
+
+{% if can_approve %}
+<form class="card" method="post" action="{{ url_for('supervisor.week_approve', week_id=wk.id) }}" novalidate
+      onsubmit="return confirm('Approve this week? Once approved it is sealed and its entries cannot be changed.')">
+  {{ form.hidden_tag() }}
+  <h2>Week sign-off</h2>
+  <p class="muted">Add a comment, check your details and approve.</p>
+  <label for="comment">Comments by Industry-Based Supervisor</label>
+  {{ form.comment(id="comment", rows=4) }}
+  <div class="grid-2">{{ field(form.signer_name) }}{{ field(form.designation) }}</div>
+  <label class="check">{{ form.confirm() }} <span>I confirm that I reviewed this week's work</span></label>
+  <p class="help">This approval is recorded with the date and time.</p>
+    <div class="actions-row spread"><span class="muted">This week will be sealed after approval.</span>
+    <button class="btn primary" type="submit" {{ 'disabled' if not current_user.is_verified }}>Approve this week</button></div>
+</form>
+{% endif %}
+{% endblock %}
