@@ -1,0 +1,14 @@
+<!doctype html>
+{% set ep = request.endpoint or '' %}
+<nav class="side-nav">
+  <p class="side-label">Workspace</p>
+  <a class="{{ 'active' if ep in ('coordinator.dashboard', 'coordinator.student_detail') }}" href="{{ url_for('coordinator.dashboard') }}">Dashboard</a>
+  <a class="{{ 'active' if ep in ('coordinator.student_link', 'coordinator.link_close', 'coordinator.link_reopen') }}" href="{{ url_for('coordinator.student_link') }}">Student sign-up link</a>
+  <a class="{{ 'active' if ep.startswith('coordinator.supervisor') }}" href="{{ url_for('coordinator.supervisors') }}">Supervisors</a>
+  <a class="{{ 'active' if ep.startswith('coordinator.staff') }}" href="{{ url_for('coordinator.staff') }}">Staff</a>
+  <a class="{{ 'active' if ep.startswith('coordinator.account') }}" href="{{ url_for('coordinator.accounts') }}">Accounts</a>
+  <a class="{{ 'active' if ep.startswith('coordinator.placement') }}" href="{{ url_for('coordinator.placements') }}">Placements</a>
+  <a class="{{ 'active' if ep.startswith('coordinator.flag') }}" href="{{ url_for('coordinator.flags') }}">Flags</a>
+  <a class="{{ 'active' if ep.startswith('coordinator.integrity') }}" href="{{ url_for('coordinator.integrity') }}">Integrity</a>
+  <a class="{{ 'active' if ep.startswith('coordinator.finalize') or ep == 'coordinator.issued_download' }}" href="{{ url_for('coordinator.finalize') }}">Finalize logbook</a>
+</nav>
