@@ -1,0 +1,61 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_paper.html" import student_row, supervisor_rows %}
+{% block title %}Sketches and sign-off{% endblock %}
+{% block content %}
+<a class="icon-btn back-btn" href="{{ url_for('student.my_logbook') }}" aria-label="Back to My Logbook">‹</a>
+<p class="eyebrow">My Logbook / Week {{ n }}</p>
+<h1>Weekly pages</h1>
+{% set tab = 'sketches' %}{% include "student/_tabs.html" %}
+{% if wk.status == 'returned' %}<div class="banner warn">Your supervisor returned this week. Correct the returned entries, confirm below and send it again.</div>{% endif %}
+{% if locked %}<div class="banner info">{{ 'This week is approved and sealed.' if wk.status == 'approved' else 'This week is with your supervisor and can no longer be changed.' }}</div>{% endif %}
+
+<form method="post" enctype="multipart/form-data" novalidate>
+  {{ form.hidden_tag() }}
+  <article class="paper">
+    <p class="paper-date">Date <span class="dotted">{{ end.strftime('%d %b %Y')|upper }}</span></p>
+    <h2 class="paper-title">FOR SKETCHES, DIAGRAMS AND GRAPHS</h2>
+    <p class="paper-note">(Additional drawing, may be attached where necessary) The student may use the space for additional reports</p>
+    <div class="sketch-box">
+      {% if not locked %}
+        <div class="dropzone"><strong>Upload photos of drawings</strong><small>JPG or PNG, up to 5 MB each. Up to 6 images.</small>
+          <input type="file" name="files" accept="image/png,image/jpeg" multiple aria-label="Choose photos"></div>
+      {% endif %}
+      {% for a in wk.attachments %}
+        <div class="sketch-item">
+          <img src="{{ url_for('files.sketch', att_id=a.id) }}" alt="{{ a.caption or 'Sketch' }}">
+          <div><label for="cap-{{ a.id }}">Caption</label>
+            <input type="text" id="cap-{{ a.id }}" name="caption_{{ a.id }}" value="{{ a.caption }}" maxlength="200" {{ 'readonly' if locked }}></div>
+          {% if not locked %}<button type="submit" class="link-btn danger" form="del-{{ a.id }}">Remove</button>{% endif %}
+        </div>
+      {% endfor %}
+      <label for="report">Additional report</label>
+      {{ form.report(id="report", rows=6, placeholder="Add any further observations or details for this week…", readonly=locked) }}
+      {% for e in form.report.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+    </div>
+
+    {% if locked %}{{ student_row(wk) }}{% else %}
+    <div class="so-row">
+      <div class="so-label">Student's Signature</div>
+      <div class="so-body">
+        <label class="check">{{ form.confirm() }} <span>I confirm this week's entries are my own work</span></label>
+        <label for="typed_name">Typed name</label>{{ form.typed_name(autocomplete="off") }}
+      </div>
+      <div class="so-date">Date <span class="dotted">{{ today.strftime('%d %b %Y')|upper }}</span><br><small>Set automatically</small></div>
+    </div>
+    {% endif %}
+    {{ supervisor_rows(wk) }}
+    <div class="page-no"><span>{{ 2 * n }}</span></div>
+  </article>
+  {% if not locked %}
+  <div class="actions-row">
+    <button class="btn" type="submit" name="action" value="save">Save</button>
+    <button class="btn primary" type="submit" name="action" value="submit">Send week to my supervisor</button>
+  </div>
+  {% endif %}
+</form>
+{% for a in wk.attachments %}{% if not locked %}
+<form id="del-{{ a.id }}" method="post" action="{{ url_for('student.sketch_delete', att_id=a.id) }}" onsubmit="return confirm('Remove this image?')">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></form>
+{% endif %}{% endfor %}
+{% endblock %}
