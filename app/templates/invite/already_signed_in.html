@@ -1,0 +1,15 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% block content %}
+<section class="card auth-card">
+  <h1>You're already signed in</h1>
+  <p class="muted">This browser is signed in as <strong>{{ current_user.full_name }}</strong> ({{ current_user.role_label }}). The link you opened is for creating a different account.</p>
+  <form method="post" action="{{ url_for('invite.switch_account') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <button class="btn primary" type="submit">Sign out and continue</button>
+  </form>
+  <a class="link" href="{{ home_url }}">Stay signed in</a>
+  <p class="muted small">Tip: use a private window to keep both accounts open.</p>
+</section>
+{% endblock %}
