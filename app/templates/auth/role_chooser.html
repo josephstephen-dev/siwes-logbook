@@ -1,0 +1,30 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% block title_full %}{{ app_name }}: digital SIWES industrial training logbook{% endblock %}
+{% block content %}
+<p class="eyebrow">Private SIWES workspace</p>
+<h1>Welcome to your digital logbook</h1>
+<p class="muted">Choose the sign-in page for your account.</p>
+{% if notice == "continue" %}<div class="banner info"><strong>Sign in to continue</strong></div>{% endif %}
+{% if needs_setup %}
+<div class="banner warn"><strong>This site hasn't been set up yet.</strong>
+  The first coordinator can <a href="{{ url_for('setup.first_run') }}">set it up here</a> with the setup key.</div>
+{% endif %}
+<div class="role-cards">
+  <a class="role-card student" href="{{ url_for('auth.sign_in_student') }}">
+    <span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"/><path d="M8 7h7"/></svg></span>
+    <h2>Student sign in</h2><p>Write daily entries and manage your SIWES logbook.</p></a>
+  <a class="role-card supervisor" href="{{ url_for('auth.sign_in_supervisor') }}">
+    <span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></span>
+    <h2>Supervisor sign in</h2><p>Review student work and approve completed weeks.</p></a>
+  <a class="role-card coordinator" href="{{ url_for('auth.sign_in_coordinator') }}">
+    <span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4h9v17M14 9h5v12M9 8h1M9 12h1M9 16h1M3 21h18"/></svg></span>
+    <h2>Coordinator sign in</h2><p>Manage placements, sign-ups and logbook reviews.</p></a>
+</div>
+<p class="muted small">New here? Use the sign-up link your coordinator or student shared with you.</p>
+<section class="intro-note">
+  <h2>What is {{ app_name }}?</h2>
+  <p class="muted">{{ app_name }} replaces the paper SIWES logbook. Students write one entry per working day on the familiar Weekly Progress Chart, industry supervisors approve each week online, and coordinators monitor progress and issue a final logbook with a QR code that anyone can check.</p>
+  <p><a class="link" href="{{ url_for('verify.check_pdf') }}">Check a logbook</a></p>
+</section>
+{% endblock %}
