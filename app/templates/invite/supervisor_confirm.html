@@ -1,0 +1,12 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% block content %}
+<section class="card auth-card supervisor">
+  <h1>Supervise {{ student.full_name }}?</h1>
+  <p class="muted">{{ student.full_name }} ({{ student.matric_number }}) asked you to review and approve their weekly logbook.</p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn primary" type="submit">Yes, I supervise this student</button>
+  </form>
+</section>
+{% endblock %}
