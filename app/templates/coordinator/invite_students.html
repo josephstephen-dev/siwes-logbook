@@ -1,0 +1,43 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_field.html" import field %}
+{% from "components/_status_chip.html" import chip %}
+{% from "components/_link_box.html" import link_box %}
+{% block title %}Student sign-up link{% endblock %}
+{% block content %}
+<p class="eyebrow">Accounts and access</p>
+<h1>Student sign-up link</h1>
+<p class="muted">Make one link and post it in the students' WhatsApp group. Each student creates their own account with it. Close the link when sign-ups are done.</p>
+
+<form class="card" method="post" novalidate>
+  {{ form.hidden_tag() }}
+  <h2>Create a new link</h2>
+  <div class="grid-2">
+    {{ field(form.label) }}
+    {{ field(form.days) }}
+    {{ field(form.max_uses, hint="Optional. Leave empty for no limit.", type="number") }}
+  </div>
+  <div class="actions-row"><button class="btn primary" type="submit">Create link</button></div>
+</form>
+
+<h2 class="section-title">Your links</h2>
+{% for r in rows %}
+<div class="card link-card">
+  <div class="page-head">
+    <div>
+      <strong>{{ r.link.label }}</strong> {{ chip(r.link.state) }}<br>
+      <small class="muted">{{ r.link.uses }} joined{% if r.link.max_uses %} of {{ r.link.max_uses }}{% endif %} · expires {{ r.link.expires_at.strftime('%d %b %Y') }}</small>
+    </div>
+    {% if r.link.state == 'Open' or r.link.state in ('Closed', 'Expired') %}
+    <form method="post" action="{{ url_for('coordinator.link_close' if r.link.state == 'Open' else 'coordinator.link_reopen', link_id=r.link.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn" type="submit">{{ 'Close link' if r.link.state == 'Open' else 'Reopen' }}</button>
+    </form>
+    {% endif %}
+  </div>
+  {% if r.link.state == 'Open' %}{{ link_box('link-' ~ r.link.id, r.url, r.wa) }}{% endif %}
+</div>
+{% else %}
+<p class="empty">No links yet. Create one above.</p>
+{% endfor %}
+{% endblock %}
