@@ -1,0 +1,45 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_status_chip.html" import chip %}
+{% block title %}Supervisors{% endblock %}
+{% block content %}
+{% macro act(endpoint, id, label, cls='', ask=None) %}
+<form method="post" action="{{ url_for(endpoint, user_id=id) }}" {% if ask %}onsubmit="return confirm('{{ ask }}')"{% endif %}>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="link-btn {{ cls }}" type="submit">{{ label }}</button>
+</form>
+{% endmacro %}
+<p class="eyebrow">Accounts and access</p>
+<h1>Supervisors</h1>
+<p class="muted">Supervisors create their own accounts from a link their student sends. Nobody can approve a week until you confirm who they are.</p>
+<div class="banner info"><strong>How to check</strong>
+  <p class="small">Call the number shown. Ask their name and company, and confirm they supervise the student listed. Then press Confirm identity.</p></div>
+
+<div class="card table-card">
+  {% if rows %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Supervisor</th><th>Contact</th><th>Student(s)</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for u in rows %}
+      <tr>
+        <td><strong>{{ u.full_name }}</strong><br><small class="muted">{{ u.designation }} · {{ u.company }}</small></td>
+        <td><a href="tel:{{ u.phone }}">{{ u.phone }}</a><br><small class="muted">{{ u.email }}</small></td>
+        <td>{% for s in u.supervised_students %}{{ s.full_name }} <small class="muted">({{ s.matric_number }})</small>{% if not loop.last %}<br>{% endif %}{% else %}<span class="muted">None</span>{% endfor %}</td>
+        <td>
+          {% if u.status == 'deactivated' %}{{ chip('Inactive') }}
+          {% elif u.is_verified %}{{ chip('Confirmed') }}<br><small class="muted">{{ u.verified_at.strftime('%d %b %Y') }}{% if u.verified_by %} by {{ u.verified_by.full_name }}{% endif %}</small>
+          {% else %}{{ chip('Awaiting check') }}{% endif %}
+        </td>
+        <td class="actions">
+          {% if u.status == 'active' %}
+            {% if not u.is_verified %}{{ act('coordinator.supervisor_confirm', u.id, 'Confirm identity') }}{% endif %}
+            {{ act('coordinator.supervisor_remove', u.id, 'Remove', 'danger', 'Remove this supervisor? Their students will be able to invite someone else.') }}
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<p class="empty">No supervisors yet. They appear here after a student sends them a link.</p>{% endif %}
+</div>
+{% endblock %}
