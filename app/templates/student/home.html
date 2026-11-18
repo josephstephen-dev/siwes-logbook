@@ -1,0 +1,75 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_status_chip.html" import chip %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="eyebrow">{{ today.strftime('%A, %d %B %Y')|upper }}</p>
+    <h1>{{ greeting }}, {{ current_user.full_name.split()[0] }}</h1>
+    <p class="muted">Here's how your industrial training logbook is progressing.</p>
+  </div>
+  {% if p %}<a class="btn" href="{{ url_for('student.week_chart', n=n) }}">Open week {{ n }}</a>{% endif %}
+</div>
+{% if not p %}
+  <div class="card"><h2>Your placement</h2><p class="muted">Not set up yet. Your coordinator will add your company and dates. Your logbook appears here once that's done.</p></div>
+{% else %}
+  {% if not_started %}<div class="banner info">Your placement starts on <strong>{{ p.start_date.strftime('%d %B %Y') }}</strong>.</div>{% endif %}
+  <section class="card hero">
+    <div class="hero-top">
+      <div><p class="eyebrow">This week</p><h2>Week {{ n }} progress</h2>
+        <p class="muted">{{ start.strftime('%d') }}–{{ end.strftime('%d %b %Y') }}</p></div>
+      <div class="hero-pct"><strong>{{ cons.pct }}%</strong><small>CONSISTENCY</small></div>
+    </div>
+    <div class="day-dots">
+      {% for r in rows %}<div><span>{{ r.label.rstrip('.') }}</span><b class="{{ 'done' if r.entry }}{{ ' off' if not r.works }}{{ ' now' if r.date == today }}">{{ '✓' if r.entry else loop.index }}</b></div>{% endfor %}
+    </div>
+    <div class="progress" aria-hidden="true"><span style="width: {{ (100 * wk_done / wk_total)|round|int if wk_total else 0 }}%"></span></div>
+    <p class="muted small">You've recorded {{ wk_done }} of {{ wk_total }} working days. Keep your logbook up to date.</p>
+  </section>
+
+  <div class="grid-2 cards">
+    <div class="card">
+      <div class="page-head"><div><p class="eyebrow">Today · {{ today.strftime('%A') }}</p><h2>Today's entry</h2></div>
+        {% if today_row and today_row.entry %}{{ chip('Recorded') }}{% endif %}</div>
+      {% if today_row and today_row.works %}
+        {% if today_row.entry %}
+          <p>{{ today_row.entry.body|truncate(160) }}</p>
+          <div class="card-foot"><span class="muted small">Recorded at {{ today_row.entry.recorded_at|lagos('%I:%M %p') }}</span>
+            <a class="link" href="{{ url_for('student.entry_open', day=today.isoformat()) }}">Open entry ›</a></div>
+        {% else %}
+          <p class="muted">You haven't written today's entry yet.</p>
+          <a class="btn primary" href="{{ url_for('student.entry_write', day=today.isoformat()) }}">Write today's entry</a>
+        {% endif %}
+      {% else %}<p class="muted">Today isn't a working day on your placement.</p>{% endif %}
+    </div>
+    <div class="card">
+      <p class="eyebrow">Needs your attention</p>
+      <h2>{{ returned|length }} pending correction{{ 's' if returned|length != 1 }}</h2>
+      {% for r in returned %}
+        <p><strong>Week {{ r.n }} · {{ r.e.work_date.strftime('%A') }}</strong><br><span class="muted">"{{ r.e.return_comment }}"</span><br>
+        <a class="link" href="{{ url_for('student.entry_amend', day=r.e.work_date.isoformat()) }}">Review correction ›</a></p>
+      {% else %}<p class="muted">Nothing to correct.</p>{% endfor %}
+    </div>
+  </div>
+
+  <section class="card table-card" style="margin-top:16px">
+    <div class="page-head pad"><div><p class="eyebrow">Your logbook</p><h2>Recent weeks</h2></div>
+      <a class="link" href="{{ url_for('student.my_logbook') }}">View all weeks ›</a></div>
+    {% for i in recent %}
+    <a class="week-row" href="{{ url_for('student.week_chart', n=i.n) }}">
+      <span class="wk-no">{{ '%02d'|format(i.n) }}</span>
+      <span><strong>Week {{ i.n }}</strong><br><small class="muted">{{ i.start.strftime('%d') }}–{{ i.end.strftime('%d %b %Y') }} · {{ i.done }} of {{ i.total }} entries</small></span>
+      {{ chip(i.label) }}
+    </a>
+    {% endfor %}
+  </section>
+{% endif %}
+<div class="card" style="margin-top:16px">
+  <h2>Your supervisor</h2>
+  {% if current_user.industry_supervisor %}
+    <p><strong>{{ current_user.industry_supervisor.full_name }}</strong> <span class="muted">· {{ current_user.industry_supervisor.company }}</span></p>
+  {% else %}<p class="muted">Not linked yet. You need one before you can send a week for approval.</p>{% endif %}
+  <a class="link" href="{{ url_for('student.supervisor') }}">Open</a>
+</div>
+{% endblock %}
