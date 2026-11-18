@@ -1,0 +1,8 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% block content %}
+<section class="card auth-card">
+  <h1>Your session expired. Sign in again.</h1>
+  <a class="btn primary" href="{{ url_for('auth.role_chooser') }}">Sign in</a>
+</section>
+{% endblock %}
