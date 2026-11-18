@@ -1,0 +1,51 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_field.html" import field %}
+{% block title %}Placement setup{% endblock %}
+{% block content %}
+<p class="eyebrow">Placements</p>
+<h1>{{ 'Edit placement' if editing else 'Placement setup' }}</h1>
+<p class="muted">{{ 'Update ' ~ p.student.full_name ~ "'s placement details." if editing else "Create a student's industrial training placement." }}</p>
+{% if no_students and not editing %}
+  <div class="banner info">Every student who has signed up already has a placement. Share the <a href="{{ url_for('coordinator.student_link') }}">student sign-up link</a> first.</div>
+{% else %}
+<form class="card" method="post" novalidate>
+  {{ form.hidden_tag() }}
+  <h2>Student and company</h2>
+  <div class="grid-2">
+    {% if editing %}<div class="field"><label>Student</label><p class="static">{{ p.student.full_name }} · {{ p.student.matric_number }}</p></div>
+    {% else %}{{ field(form.student) }}{% endif %}
+    {{ field(form.company_name) }}
+    {{ field(form.start_date, hint=('Locked once the student has started their logbook.' if locked_start else None), type="date") }}
+    {{ field(form.end_date, type="date") }}
+    {{ field(form.company_address) }}
+    {{ field(form.school_supervisor) }}
+  </div>
+  <h2>Working days</h2>
+  <div class="chip-checks">
+    {% for sub in form.working_days %}<label class="chip-check">{{ sub() }}<span>{{ sub.label.text }}</span></label>{% endfor %}
+  </div>
+  {% for e in form.working_days.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+
+  {% if editing %}
+  <h2 style="margin-top:24px">Industry supervisor contact</h2>
+  {% set s = p.student.industry_supervisor %}
+  {% if s %}
+    <dl class="readonly">
+      <div><dt>Full name</dt><dd>{{ s.full_name }}</dd></div>
+      <div><dt>Phone number</dt><dd>{{ s.phone }}</dd></div>
+      <div><dt>Email address</dt><dd>{{ s.email }}</dd></div>
+      <div><dt>Designation</dt><dd>{{ s.designation }}</dd></div>
+    </dl>
+    <div class="confirm-box">
+      {% if s.is_verified %}<span class="chip ok"><span class="dot"></span>Supervisor identity confirmed by phone</span>
+        <p class="help">Confirmed {{ s.verified_at|lagos('%d %b %Y') }}{% if s.verified_by %} by {{ s.verified_by.full_name }}{% endif %}</p>
+      {% else %}<span class="chip warn"><span class="dot"></span>Identity not confirmed yet</span>
+        <p class="help">Phone the supervisor, then confirm on the <a href="{{ url_for('coordinator.supervisors') }}">Supervisors</a> page. Weeks can't be approved until then.</p>{% endif %}
+    </div>
+  {% else %}<p class="muted">No supervisor linked yet. The student sends their supervisor a link from "My supervisor".</p>{% endif %}
+  {% endif %}
+  <div class="actions-row"><a class="btn" href="{{ url_for('coordinator.placements') }}">Cancel</a><button class="btn primary" type="submit">Save placement</button></div>
+</form>
+{% endif %}
+{% endblock %}
