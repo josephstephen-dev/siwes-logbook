@@ -1,0 +1,43 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_stat_card.html" import stat %}
+{% block title %}Integrity{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Record checks</p><h1>Integrity</h1>
+  <p class="muted">Confirm that placement records are complete and unchanged.</p></div>
+  <form method="post" action="{{ url_for('coordinator.integrity_run_all') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn primary" type="submit">Run all checks</button></form></div>
+
+{% if cp_problems %}<div class="banner error"><strong>Checkpoint problem.</strong>
+  <ul>{% for m in cp_problems %}<li>{{ m }}</li>{% endfor %}</ul>
+  Stored checkpoints no longer match what was published. Compare with the nightly emails.</div>{% endif %}
+{% if counts.bad %}<div class="banner error"><strong>{{ counts.bad }} placement{{ 's' if counts.bad != 1 }} need attention.</strong> They are listed first.</div>
+{% elif counts.unchecked %}<div class="banner warn">{{ counts.unchecked }} placement{{ 's' if counts.unchecked != 1 }} not checked yet. Press "Run all checks".</div>
+{% else %}<div class="banner success">Every record checked is intact.</div>{% endif %}
+
+<div class="stats">{{ stat("Verified", counts.ok) }}{{ stat("Problems", counts.bad) }}{{ stat("Not checked yet", counts.unchecked) }}{{ stat("Sealed events", counts.events) }}</div>
+
+<div class="banner info"><strong>Independent checkpoints.</strong> Checkpoints are published externally (emailed to every coordinator each night, and written to a log file) so issued records can be checked later. Keep those emails.
+  {% if cp %}<br>Last checkpoint: {{ cp.created_at|lagos }}.{% else %}<br>No checkpoint yet. The nightly job creates one.{% endif %}</div>
+
+<div class="card table-card"><div class="table-wrap"><table>
+  <thead><tr><th>Student</th><th>Placement</th><th>Record status</th><th>Events</th><th>Last daily checkpoint</th><th>Last check</th><th></th></tr></thead><tbody>
+  {% for p in rows %}{% set r = results.get(p.student_id) %}
+  <tr class="{{ 'row-bad' if r and not r.ok }}"><td><strong>{{ p.student.full_name }}</strong></td><td>{{ p.company_name }}</td>
+    <td>{% if r %}<span class="chip {{ 'ok' if r.ok else 'bad' }}"><span class="dot"></span>{{ 'Integrity verified' if r.ok else 'Problem found at event ' ~ r.problem_seq }}</span>
+        {% if not r.ok %}<br><small>{{ r.message }}</small>{% endif %}
+        {% if stale[p.student_id] %}<br><small class="muted">Check is more than a day old</small>{% endif %}
+      {% else %}<span class="chip neutral"><span class="dot"></span>Not checked yet</span>{% endif %}</td>
+    <td>{{ events.get(p.student_id, 0) }}</td>
+    <td>{{ cp.created_at|lagos if cp and (p.student_id|string) in heads else '—' }}</td>
+    <td>{{ r.checked_at|lagos if r else '—' }}</td>
+    <td><form method="post" action="{{ url_for('coordinator.integrity_run', student_id=p.student_id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn" type="submit">Run check</button></form></td></tr>
+  {% else %}<tr><td colspan="7" class="empty">No placements yet.</td></tr>{% endfor %}
+</tbody></table></div></div>
+
+<form class="card" method="post" action="{{ url_for('coordinator.integrity_check_digest') }}" style="margin-top:16px">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <h2>Check an emailed checkpoint</h2>
+  <p class="muted">Paste the checkpoint code from a nightly email to confirm this server still holds the same, unaltered record.</p>
+  <div class="copy-row"><input type="text" name="digest" required placeholder="Checkpoint code" aria-label="Checkpoint code"><button class="btn primary" type="submit">Check</button></div>
+</form>
+{% endblock %}
