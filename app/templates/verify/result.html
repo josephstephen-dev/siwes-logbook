@@ -1,0 +1,21 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% block title %}Verification{% endblock %}
+{% block content %}
+<section class="card auth-card verify {{ 'is-valid' if valid else 'is-invalid' }}">
+  <p class="eyebrow">Logbook verification</p>
+  <h1 class="big-status">{{ 'VALID' if valid else 'NOT VALID' }}</h1>
+  {% if valid %}
+    <dl class="readonly">
+      <div><dt>Company</dt><dd>{{ rec.company }}</dd></div>
+      <div><dt>Training period</dt><dd>{{ rec.start_date.strftime('%d %b %Y') }} – {{ rec.end_date.strftime('%d %b %Y') }}</dd></div>
+      <div><dt>Student</dt><dd>{{ rec.initials }} · matric number ending {{ rec.matric_tail }}</dd></div>
+    </dl>
+    <p class="muted">This logbook was issued by the SIWES coordinator and its records are unchanged.</p>
+  {% else %}
+    <p class="muted">We could not confirm this logbook. It may be wrong, replaced by a newer copy, or altered.</p>
+  {% endif %}
+  <p class="muted">A printed copy can only be checked against this record.</p>
+  <a class="btn" href="{{ url_for('verify.check_pdf') }}">Check a PDF</a>
+</section>
+{% endblock %}
