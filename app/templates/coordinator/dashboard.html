@@ -1,0 +1,70 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_status_chip.html" import chip %}
+{% from "components/_stat_card.html" import stat %}
+{% from "components/_pagination.html" import pager with context %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><p class="eyebrow">Coordinator workspace</p><h1>Placement overview</h1>
+    <p class="muted">Monitor student progress and respond to records that need attention.</p></div>
+  <a class="btn" href="{{ export_url }}">Export table</a>
+</div>
+{% if waiting.staff %}<div class="banner warn"><strong>{{ waiting.staff }} coordinator{{ 's' if waiting.staff != 1 }} waiting for approval.</strong> <a href="{{ url_for('coordinator.staff') }}">Review</a></div>{% endif %}
+{% if waiting.supervisors %}<div class="banner warn"><strong>{{ waiting.supervisors }} supervisor{{ 's' if waiting.supervisors != 1 }} waiting for an identity check.</strong> <a href="{{ url_for('coordinator.supervisors') }}">Review</a></div>{% endif %}
+{% if waiting.unplaced %}<div class="banner info"><strong>{{ waiting.unplaced }} student{{ 's' if waiting.unplaced != 1 }} without a placement.</strong> <a href="{{ url_for('coordinator.placement_new') }}">Create a placement</a></div>{% endif %}
+<div class="stats">
+  {{ stat("Active students", stats.students, "Across " ~ stats.companies ~ " compan" ~ ("y" if stats.companies == 1 else "ies")) }}
+  {{ stat("Pending approvals", stats.pending, stats.overdue ~ " overdue") }}
+  {{ stat("Open flags", stats.flags, "Needs review") }}
+  {{ stat("Average consistency", stats.avg ~ "%") }}
+</div>
+<form method="get" class="filter-form">
+  <input type="hidden" name="sort" value="{{ sort }}">
+  <div class="filters">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search students or companies…" aria-label="Search">
+    <select name="company" aria-label="Company" onchange="this.form.submit()"><option value="">All companies</option>
+      {% for c in companies %}<option {{ 'selected' if c == company }}>{{ c }}</option>{% endfor %}</select>
+    <select name="supervisor" aria-label="Supervisor" onchange="this.form.submit()"><option value="">All supervisors</option>
+      {% for id, name in sups %}<option value="{{ id }}" {{ 'selected' if id == sup }}>{{ name }}</option>{% endfor %}</select>
+    <button class="btn" type="submit">Filter</button>
+  </div>
+  <details class="more" {{ 'open' if risk or only_pending }}>
+    <summary>More filters</summary>
+    <div class="filters">
+      <select name="risk" aria-label="Risk"><option value="">Any risk</option>
+        {% for r in ['At risk', 'Watch', 'On track', 'Not started'] %}<option {{ 'selected' if r == risk }}>{{ r }}</option>{% endfor %}</select>
+      <label class="check"><input type="checkbox" name="pending" value="1" {{ 'checked' if only_pending }}> <span>Only students with approvals waiting</span></label>
+      <a class="btn" href="{{ url_for('coordinator.dashboard') }}">Clear all</a>
+    </div>
+  </details>
+</form>
+{% if q or company or sup or risk or only_pending %}
+<p class="muted small">Showing {{ p.total }} result{{ 's' if p.total != 1 }} for your filters. <a class="link" href="{{ url_for('coordinator.dashboard') }}">Clear filters</a></p>
+{% endif %}
+<div class="card table-card">
+  {% if p.items %}<div class="table-wrap"><table>
+    <thead><tr><th>Student</th><th>Company</th><th><a href="{{ sort_urls.consistency }}">Consistency ↕</a></th>
+      <th>Last entry</th><th>Pending approvals</th><th>Late entries</th><th>Open flags</th>
+      <th><a href="{{ sort_urls.risk }}">Risk ↕</a></th><th></th></tr></thead>
+    <tbody>{% for r in p.items %}
+      <tr>
+        <td><div class="who-cell"><span class="avatar sm">{{ initials(r.s.full_name) }}</span>
+          <div><a href="{{ url_for('coordinator.student_detail', student_id=r.s.id) }}"><strong>{{ r.s.full_name }}</strong></a><br><small class="muted">{{ r.s.matric_number }}</small></div></div></td>
+        <td>{{ r.company }}</td>
+        <td>{{ r.pct }}%<span class="bar"><i style="width:{{ r.pct }}%"></i></span></td>
+        <td>{{ r.last }}</td><td>{{ r.pending }}</td><td>{{ r.late }}</td><td>{{ r.flags or '—' }}</td>
+        <td>{{ chip(r.risk) }}</td>
+        <td><details class="row-menu"><summary aria-label="Actions for {{ r.s.full_name }}">⋯</summary>
+          <div class="menu">
+            <a href="{{ url_for('coordinator.student_detail', student_id=r.s.id) }}">Open student</a>
+            <a href="{{ url_for('coordinator.finalize_student', student_id=r.s.id) }}">Finalize</a>
+            <form method="post" action="{{ url_for('coordinator.integrity_run', student_id=r.s.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">Run check</button></form>
+          </div></details></td>
+      </tr>{% endfor %}</tbody>
+  </table></div>
+  <div class="table-foot">Showing {{ p.first }}–{{ p.last }} of {{ p.total }} students</div>
+  {% else %}<p class="empty">No students match. Create placements to see them here.</p>{% endif %}
+</div>
+{{ pager(p) }}
+{% endblock %}
