@@ -1,0 +1,21 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% block title %}Placements{% endblock %}
+{% block content %}
+<div class="page-head"><div><p class="eyebrow">Placements</p><h1>Placements</h1>
+  <p class="muted">Each student has one placement. Create it after they have signed up with the shared link.</p></div>
+  <a class="btn primary" href="{{ url_for('coordinator.placement_new') }}">New placement</a></div>
+<div class="card table-card">
+  {% if rows %}<div class="table-wrap"><table>
+    <thead><tr><th>Student</th><th>Company</th><th>Dates</th><th>Weeks</th><th>Working days</th><th>Industry supervisor</th><th></th></tr></thead><tbody>
+    {% for p in rows %}<tr>
+      <td><a href="{{ url_for('coordinator.student_detail', student_id=p.student_id) }}"><strong>{{ p.student.full_name }}</strong></a><br><small class="muted">{{ p.student.matric_number }}</small></td>
+      <td>{{ p.company_name }}</td>
+      <td>{{ p.start_date.strftime('%d %b %Y') }} – {{ p.end_date.strftime('%d %b %Y') }}</td>
+      <td>{{ p.total_weeks }}</td><td>{{ p.day_labels|join(', ') }}</td>
+      <td>{{ p.industry_supervisor.full_name if p.industry_supervisor else 'Not linked yet' }}</td>
+      <td><a class="link" href="{{ url_for('coordinator.placement_edit', pid=p.id) }}">Edit</a></td></tr>{% endfor %}
+  </tbody></table></div>
+  {% else %}<p class="empty">No placements yet. Create one for a student who has signed up.</p>{% endif %}
+</div>
+{% endblock %}
