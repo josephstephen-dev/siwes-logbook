@@ -1,0 +1,76 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_status_chip.html" import chip %}
+{% from "components/_stat_card.html" import stat %}
+{% from "components/_pagination.html" import pager with context %}
+{% block title %}Accounts{% endblock %}
+{% block content %}
+{% macro act(endpoint, id, label, cls='', ask=None) %}
+<form method="post" action="{{ url_for(endpoint, user_id=id) }}" {% if ask %}onsubmit="return confirm('{{ ask }}')"{% endif %}>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="link-btn {{ cls }}" type="submit">{{ label }}</button>
+</form>
+{% endmacro %}
+<p class="eyebrow">Accounts and access</p>
+<h1>Accounts</h1>
+<p class="muted">Students and supervisors. A password reset link is shown on screen for you to send.</p>
+
+<div class="stats">
+  {{ stat("All accounts", counts.total, counts.students ~ " students · " ~ counts.supervisors ~ " supervisors") }}
+  {{ stat("Active", counts.active, "Can sign in") }}
+  {{ stat("Unconfirmed email", counts.unconfirmed, "Waiting for the link") }}
+  {{ stat("Awaiting check", counts.awaiting, "Supervisors") }}
+  {{ stat("Inactive", counts.inactive, "Access is paused") }}
+</div>
+
+<form class="filters" method="get">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search accounts…" aria-label="Search">
+  <select name="role" onchange="this.form.submit()" aria-label="Role">
+    <option value="">All roles</option>
+    <option value="student" {{ 'selected' if role == 'student' }}>Student</option>
+    <option value="supervisor" {{ 'selected' if role == 'supervisor' }}>Supervisor</option>
+  </select>
+  <select name="status" onchange="this.form.submit()" aria-label="Status">
+    <option value="">All statuses</option>
+    <option value="active" {{ 'selected' if status == 'active' }}>Active</option>
+    <option value="deactivated" {{ 'selected' if status == 'deactivated' }}>Inactive</option>
+    <option value="unverified" {{ 'selected' if status == 'unverified' }}>Unconfirmed email</option>
+  </select>
+  <button class="btn" type="submit">Filter</button>
+</form>
+
+<div class="card table-card">
+  {% if p.items %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Placement</th><th>Last sign-in</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for u in p.items %}
+      {% set label = 'Inactive' if u.status == 'deactivated' else ('Unconfirmed email' if u.status == 'unverified' else ('Awaiting check' if u.role == 'supervisor' and not u.is_verified else 'Active')) %}
+      <tr>
+        <td><strong>{{ u.full_name }}</strong><br><small class="muted">{{ u.matric_number or u.email }}</small></td>
+        <td>{{ u.role_label }}</td>
+        <td>{{ chip(label) }}</td>
+        <td>{% if u.role == 'student' %}{{ u.placement.company_name if u.placement else 'Not set' }}{% else %}—{% endif %}</td>
+        <td>{{ u.last_sign_in_at|lagos('%d %b %Y, %H:%M') if u.last_sign_in_at else 'Never' }}</td>
+        <td class="actions">
+          {% if u.status == 'unverified' %}
+            {{ act('coordinator.account_verify_link', u.id, 'Confirmation link') }}
+            {{ act('coordinator.account_remove', u.id, 'Remove', 'danger', 'Remove this unconfirmed account?') }}
+          {% elif u.status == 'active' %}
+            {{ act('coordinator.account_reset_link', u.id, 'Reset link') }}
+            {{ act('coordinator.account_deactivate', u.id, 'Deactivate', 'danger', 'Deactivate this account? They will be signed out.') }}
+            {% if u.role == 'student' and not u.placement %}
+              {{ act('coordinator.account_remove', u.id, 'Remove', 'danger', 'Remove this account? Use this if someone signed up with another student\'s matric number.') }}
+            {% endif %}
+          {% else %}
+            {{ act('coordinator.account_reactivate', u.id, 'Reactivate') }}
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<p class="empty">No accounts match.</p>{% endif %}
+</div>
+{{ pager(p) }}
+{% endblock %}
