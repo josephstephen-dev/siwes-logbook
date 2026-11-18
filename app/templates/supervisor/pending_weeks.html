@@ -1,0 +1,36 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_status_chip.html" import chip %}
+{% block title %}Week review{% endblock %}
+{% block content %}
+<p class="eyebrow">Supervisor</p>
+<h1>Welcome, {{ current_user.full_name.split()[0] }}</h1>
+{% if not current_user.is_verified %}
+  <div class="banner warn"><strong>Waiting for identity check.</strong> Your coordinator will phone you to confirm who you are. You can approve weeks after that.</div>
+{% endif %}
+<h2 class="section-title">Waiting for your approval</h2>
+<div class="card table-card">
+  {% for i in waiting %}
+  <a class="week-row" href="{{ url_for('supervisor.week_review', week_id=i.wk.id) }}">
+    <span class="wk-no">{{ i.wk.week_no }}</span>
+    <span><strong>{{ i.wk.student.full_name }} · Week {{ i.wk.week_no }}</strong><br><small class="muted">{{ i.start.strftime('%d') }}–{{ i.end.strftime('%d %b %Y') }} · sent {{ i.wk.submitted_at|lagos('%d %b %Y') }}</small></span>
+    {{ chip('Submitted') }}
+  </a>
+  {% else %}<p class="empty">Nothing is waiting for you.</p>{% endfor %}
+</div>
+{% if recent %}
+<h2 class="section-title">Recently reviewed</h2>
+<div class="card table-card">
+  {% for i in recent %}
+  <a class="week-row" href="{{ url_for('supervisor.week_review', week_id=i.wk.id) }}">
+    <span class="wk-no">{{ i.wk.week_no }}</span>
+    <span><strong>{{ i.wk.student.full_name }} · Week {{ i.wk.week_no }}</strong></span>
+    {{ chip('Approved' if i.wk.status == 'approved' else 'Returned for correction') }}
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+<h2 class="section-title">Your students</h2>
+{% for s in students %}<div class="card"><strong>{{ s.full_name }}</strong> <span class="muted">· {{ s.matric_number }}</span></div>
+{% else %}<p class="muted">No students linked yet.</p>{% endfor %}
+{% endblock %}
