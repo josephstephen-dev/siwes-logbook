@@ -1,0 +1,16 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% block title %}Email confirmed{% endblock %}
+{% block content %}
+<section class="card auth-card {{ user.role }}">
+  <h1>Email confirmed</h1>
+  {% if user.role == 'coordinator' %}
+    <p class="muted">Another coordinator must approve your account before you can sign in.</p>
+  {% elif user.role == 'supervisor' %}
+    <p class="muted">Your account is ready. Your coordinator may phone you to check your identity before you can approve weeks.</p>
+  {% else %}
+    <p class="muted">Your account is ready. You can sign in now.</p>
+  {% endif %}
+  <a class="btn primary" href="{{ url_for('auth.sign_in_' ~ user.role) }}">Go to {{ user.role }} sign in</a>
+</section>
+{% endblock %}
