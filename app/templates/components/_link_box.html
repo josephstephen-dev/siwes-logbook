@@ -1,0 +1,8 @@
+<!doctype html>
+{% macro link_box(id, url, wa_url) %}
+<div class="copy-row">
+  <input type="text" id="{{ id }}" value="{{ url }}" readonly aria-label="Link">
+  <button type="button" class="btn" data-copy="{{ id }}">Copy</button>
+  <a class="btn" href="{{ wa_url }}" target="_blank" rel="noopener">Share on WhatsApp</a>
+</div>
+{% endmacro %}
