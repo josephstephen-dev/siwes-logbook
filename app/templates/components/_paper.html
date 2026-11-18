@@ -1,0 +1,106 @@
+<!doctype html>
+{% from "components/_status_chip.html" import chip %}
+
+{% macro student_row(wk) %}
+<div class="so-row">
+  <div class="so-label">Student's Signature</div>
+  <div class="so-body">
+    {% if wk.confirmed_at %}✓ I confirm this week's entries are my own work<br><small>Typed name: {{ wk.typed_name }}</small>
+    {% else %}<span class="muted">Not yet signed</span>{% endif %}
+  </div>
+  <div class="so-date">Date <span class="dotted">{{ wk.confirmed_at|lagos('%d %b %Y')|upper }}</span></div>
+</div>
+{% endmacro %}
+
+{% macro supervisor_rows(wk) %}
+{% set s = wk.student.industry_supervisor %}
+<div class="so-row so-comments">
+  <div class="so-label">Comments by Industry-Based Supervisor</div>
+  <div class="ruled"><p>{{ wk.supervisor_comment or '' }}</p><span></span><span></span><span></span></div>
+</div>
+<div class="so-row">
+  <div class="so-label">Name, Signature &amp; Stamp</div>
+  <div class="so-body">
+    {% if wk.status == 'approved' %}<strong>{{ wk.approver_name }}</strong><br><small>{{ wk.approver_designation }}{% if s %} · {{ s.company }}{% endif %}</small>
+    {% else %}<strong>Awaiting supervisor approval</strong>{% if s %}<br><small>{{ s.full_name }} · {{ s.designation }} · {{ s.company }}</small>{% endif %}{% endif %}
+  </div>
+  <div class="so-date">Date <span class="dotted">{{ wk.approved_at|lagos('%d %b %Y')|upper }}</span></div>
+</div>
+<div class="so-foot">Approved on {{ wk.approved_at|lagos }} · Identity confirmed by SIWES coordinator on {{ s.verified_at|lagos('%d %b %Y') if s else '—' }}</div>
+{% endmacro %}
+
+{% macro page_a(wk, rows, start, end, mode, total=1, can_return=false) %}
+<article class="paper">
+  <div class="paper-head">
+    <div>WEEKLY PROGRESS CHART</div>
+    <div>WEEK
+      {% if mode == 'student' %}
+        <select aria-label="Week" onchange="location.href=this.value">
+          {% for i in range(1, total + 1) %}<option value="{{ url_for('student.week_chart', n=i) }}" {{ 'selected' if i == wk.week_no }}>{{ i }}</option>{% endfor %}
+        </select>
+      {% else %}{{ wk.week_no }}{% endif %}
+    </div>
+    <div>WEEK ENDING <span class="dotted">{{ end.strftime('%d %b %Y')|upper }}</span></div>
+  </div>
+  <p class="paper-date">Date <span class="dotted">{{ start.strftime('%d %b %Y')|upper }}</span></p>
+  <div class="table-wrap">
+  <table class="paper-table">
+    <thead><tr><th class="c-day">Day</th><th>Description of work done</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr>
+        <th scope="row" class="c-day">{{ r.label }}<small>{{ r.date.strftime('%d %b') }}</small></th>
+        <td><div class="cell">
+          <div class="desc">
+            {% if r.entry %}
+              <p>{{ r.entry.body if mode != 'student' else r.entry.body|truncate(180) }}</p>
+              {% if r.entry.status == 'returned' and r.entry.return_comment %}<p class="return-note"><strong>Returned:</strong> {{ r.entry.return_comment }}</p>{% endif %}
+            {% elif not r.works %}<p class="muted"><em>Not a working day</em></p>
+            {% elif r.future %}<p class="muted"><em>Not yet</em></p>
+            {% else %}<p class="muted"><em>No entry recorded yet.</em></p>{% endif %}
+            {% if mode == 'review' and can_return and r.entry %}
+              <details class="return-box"><summary>Return with comment</summary>
+                <form method="post" action="{{ url_for('supervisor.entry_return', week_id=wk.id, day=r.date.isoformat()) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <textarea name="comment" rows="3" required minlength="5" maxlength="500" placeholder="What should the student correct?"></textarea>
+                  <button class="btn" type="submit">Return entry</button>
+                </form>
+              </details>
+            {% endif %}
+          </div>
+          <div class="cell-actions">
+            {% if r.entry %}
+              {{ chip('Returned for correction' if r.entry.status == 'returned' else 'Recorded') }}
+              {% if r.entry.is_late %}{{ chip('Late entry') }}{% endif %}
+              {% if mode == 'student' %}<a class="btn" href="{{ url_for('student.entry_open', day=r.date.isoformat()) }}">Open</a>{% endif %}
+            {% elif mode == 'student' and r.works and not r.future %}
+              {{ chip('Draft') }}<a class="btn primary" href="{{ url_for('student.entry_write', day=r.date.isoformat()) }}">Write</a>
+            {% endif %}
+          </div>
+        </div></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <div class="page-no"><span>{{ 2 * wk.week_no - 1 }}</span></div>
+</article>
+{% endmacro %}
+
+{% macro page_b_readonly(wk, end) %}
+<article class="paper">
+  <p class="paper-date">Date <span class="dotted">{{ end.strftime('%d %b %Y')|upper }}</span></p>
+  <h2 class="paper-title">FOR SKETCHES, DIAGRAMS AND GRAPHS</h2>
+  <p class="paper-note">(Additional drawing, may be attached where necessary) The student may use the space for additional reports</p>
+  <div class="sketch-box">
+    {% for a in wk.attachments %}
+      <figure><img src="{{ url_for('files.sketch', att_id=a.id) }}" alt="{{ a.caption or 'Sketch' }}"><figcaption>{{ a.caption }}</figcaption></figure>
+    {% endfor %}
+    {% if wk.report %}<p class="report">{{ wk.report }}</p>{% endif %}
+    {% if not wk.attachments and not wk.report %}<p class="muted">No sketches or additional report this week.</p>{% endif %}
+  </div>
+  {{ student_row(wk) }}
+  {{ supervisor_rows(wk) }}
+  <div class="page-no"><span>{{ 2 * wk.week_no }}</span></div>
+</article>
+{% endmacro %}
