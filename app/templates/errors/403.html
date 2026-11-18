@@ -1,0 +1,8 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% block content %}
+<section class="card auth-card">
+  <h1>This page isn't available for your account.</h1>
+  <a class="btn primary" href="{{ url_for('auth.role_chooser') }}">Go to my home</a>
+</section>
+{% endblock %}
