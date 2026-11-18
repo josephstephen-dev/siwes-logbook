@@ -1,0 +1,30 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% from "components/_field.html" import field %}
+{% from "components/_password_fields.html" import password_fields %}
+{% block title %}Create your supervisor account{% endblock %}
+{% block content %}
+<section class="card auth-card supervisor">
+  <p class="eyebrow">Supervisor account</p>
+  <h1>Create your account</h1>
+  <p class="muted"><strong>{{ student.full_name }}</strong> ({{ student.matric_number }}) asked you to supervise their industrial training logbook.</p>
+  {% if error %}<div class="banner error" role="alert">{{ error }}</div>{% endif %}
+  {% if problems %}<div class="banner error" role="alert">Your password needs:<ul>{% for p in problems %}<li>{{ p }}</li>{% endfor %}</ul></div>{% endif %}
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="grid-2">
+      {{ field(form.full_name, autocomplete="name") }}
+      {{ field(form.designation) }}
+      {{ field(form.company) }}
+      {{ field(form.phone, type="tel", autocomplete="tel") }}
+      {{ field(form.email, type="email", autocomplete="email") }}
+    </div>
+    {{ password_fields(form) }}
+    <label class="check">{{ form.consent() }} <span>{{ form.consent.label.text }}</span></label>
+    {% for e in form.consent.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+    <button class="btn primary" type="submit">Create account</button>
+  </form>
+  <p class="muted small">Already have a supervisor account? <a class="link" href="{{ url_for('invite.supervisor_signin', token=token) }}">Sign in to add this student</a></p>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/password_toggle.js') }}"></script>{% endblock %}
