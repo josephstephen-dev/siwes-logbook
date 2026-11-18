@@ -1,0 +1,32 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_status_chip.html" import chip %}
+{% block title %}{{ st.full_name }}{% endblock %}
+{% block content %}
+<p class="eyebrow">Student</p>
+<div class="page-head"><h1>{{ st.full_name }}</h1><a class="btn" href="{{ url_for('coordinator.finalize_student', student_id=st.id) }}">Finalize</a></div>
+<p class="muted">{{ st.matric_number }} · {{ st.department }} · {{ st.level }} Level{% if p %} · {{ p.company_name }}{% endif %}</p>
+{% if not p %}<div class="banner info">No placement yet. <a href="{{ url_for('coordinator.placement_new') }}">Create one</a>.</div>{% endif %}
+<div class="card"><h2>Record check</h2>
+  {% if result %}<span class="chip {{ 'ok' if result.ok else 'bad' }}"><span class="dot"></span>{{ 'Integrity verified' if result.ok else 'Problem found at event ' ~ result.problem_seq }}</span>
+    <small class="muted">checked {{ result.checked_at|lagos }}</small>
+  {% else %}<span class="muted">Not checked yet.</span>{% endif %}
+  <form method="post" action="{{ url_for('coordinator.integrity_run', student_id=st.id) }}" class="actions-row">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn" type="submit">Run check</button></form>
+</div>
+<h2 class="section-title">Weekly timeline</h2>
+<div class="card table-card">
+  {% for t in timeline %}<div class="week-row"><span class="wk-no">{{ t.n }}</span>
+    <span><strong>Week {{ t.n }}</strong><br><small class="muted">{{ t.start.strftime('%d') }}–{{ t.end.strftime('%d %b %Y') }} · {{ t.done }} of {{ t.total }} entries{% if t.wk and t.wk.approved_at %} · approved {{ t.wk.approved_at|lagos('%d %b %Y') }}{% elif t.wk and t.wk.submitted_at %} · sent {{ t.wk.submitted_at|lagos('%d %b %Y') }}{% endif %}</small></span>
+    {{ chip(t.label) }}</div>
+  {% else %}<p class="empty">Nothing yet.</p>{% endfor %}
+</div>
+<h2 class="section-title">Flags</h2>
+<div class="card table-card">
+  {% for f in flags %}<a class="week-row" href="{{ url_for('coordinator.flag_review', flag_id=f.id) }}"><span class="wk-no">{{ (f.score * 100)|round|int }}</span>
+    <span>Possible similarity: review, not proof<br><small class="muted">{{ f.entry_a.work_date.strftime('%d %b') }} vs {{ f.entry_b.work_date.strftime('%d %b') }}</small></span>{{ chip(f.status|capitalize) }}</a>
+  {% else %}<p class="empty">No flags.</p>{% endfor %}
+</div>
+<h2 class="section-title">Recent entries</h2>
+{% for e in entries %}<div class="card"><strong>{{ e.work_date.strftime('%a %d %b %Y') }}</strong> {{ chip('Late entry') if e.is_late }}<p class="entry-text">{{ e.body|truncate(300) }}</p></div>{% endfor %}
+{% endblock %}
