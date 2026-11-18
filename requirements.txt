@@ -1,0 +1,16 @@
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-Login
+Flask-WTF
+Flask-Limiter
+psycopg2-binary
+argon2-cffi
+python-dotenv
+reportlab
+qrcode[pil]
+pyotp
+pytest
+tzdata
+Pillow
+redis
