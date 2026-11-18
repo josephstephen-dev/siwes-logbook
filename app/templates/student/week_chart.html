@@ -1,0 +1,19 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_paper.html" import page_a %}
+{% from "components/_status_chip.html" import chip %}
+{% block title %}Week {{ n }}{% endblock %}
+{% block content %}
+<a class="icon-btn back-btn" href="{{ url_for('student.my_logbook') }}" aria-label="Back to My Logbook">‹</a>
+<p class="eyebrow">My Logbook / Week {{ n }}</p>
+<div class="page-head"><h1>Weekly pages</h1>{{ chip(label) }}</div>
+<p class="muted">Complete each day, then add sketches and confirm your work.</p>
+{% set tab = 'chart' %}{% include "student/_tabs.html" %}
+{% if wk.status == 'returned' %}<div class="banner warn"><strong>Your supervisor returned this week.</strong> Open the entries marked "Returned", correct them, then send the week again from the sign-off page.</div>{% endif %}
+{% if wk.status == 'submitted' %}<div class="banner info">This week is with your supervisor. Entries are locked until they respond.</div>{% endif %}
+{{ page_a(wk, rows, start, end, 'student', total) }}
+<div class="card page-head">
+  <div><strong>Continue to the second page</strong><p class="muted">Add sketches, an additional report and confirm your work.</p></div>
+  <a class="btn" href="{{ url_for('student.week_sketches', n=n) }}">Open sketches &amp; sign-off</a>
+</div>
+{% endblock %}
