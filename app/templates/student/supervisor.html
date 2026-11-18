@@ -1,0 +1,38 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% from "components/_link_box.html" import link_box %}
+{% block title %}My supervisor{% endblock %}
+{% block content %}
+<p class="eyebrow">Student</p>
+<h1>My supervisor</h1>
+{% if current_user.industry_supervisor %}
+  {% set s = current_user.industry_supervisor %}
+  <div class="card">
+    <h2>{{ s.full_name }}</h2>
+    <p class="muted">{{ s.designation }} · {{ s.company }}</p>
+    {% if s.is_verified %}
+      <span class="chip ok"><span class="dot"></span>Identity confirmed</span>
+    {% else %}
+      <span class="chip warn"><span class="dot"></span>Waiting for your coordinator</span>
+      <p class="muted">Your coordinator will phone your supervisor to confirm who they are. After that, they can approve your weeks.</p>
+    {% endif %}
+  </div>
+{% elif link %}
+  <div class="card">
+    <h2>Send this link to your supervisor</h2>
+    <p class="muted">Use your industry-based supervisor at the company. The link works once and expires on {{ link.expires_at.strftime('%d %b %Y') }}.</p>
+    {{ link_box('sup-link', url, wa) }}
+    <form method="post" action="{{ url_for('student.supervisor_cancel') }}" class="actions-row">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn" type="submit">Cancel this link</button>
+    </form>
+  </div>
+{% else %}
+  <div class="card">
+    <h2>Invite your supervisor</h2>
+    <p class="muted">Make a link and send it to your industry-based supervisor. They create their own account and approve your weekly logbook.</p>
+    <form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn primary" type="submit">Create link for my supervisor</button></form>
+  </div>
+{% endif %}
+{% endblock %}
