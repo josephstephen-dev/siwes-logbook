@@ -1,0 +1,8 @@
+<!doctype html>
+{% extends "layouts/public.html" %}
+{% block content %}
+<section class="card auth-card">
+  <h1>You've been signed out</h1>
+  <a class="btn primary" href="{{ url_for('auth.role_chooser') }}">Sign in again</a>
+</section>
+{% endblock %}
