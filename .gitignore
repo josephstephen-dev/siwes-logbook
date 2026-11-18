@@ -1,0 +1,11 @@
+.venv/
+_pycache_/
+*.pyc
+.env
+instance/
+.pytest_cache/
+*.sqlite3
+*.dump
+*.sql.gz
+venv/
+*.pdf
