@@ -1,0 +1,6 @@
+<!doctype html>
+{% set ep = request.endpoint or '' %}
+<nav class="side-nav">
+  <p class="side-label">Workspace</p>
+  <a class="{{ 'active' if ep == 'supervisor.pending_weeks' }}" href="{{ url_for('supervisor.pending_weeks') }}">Week review</a>
+</nav>
