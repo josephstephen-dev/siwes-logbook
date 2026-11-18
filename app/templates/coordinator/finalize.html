@@ -1,0 +1,53 @@
+<!doctype html>
+{% extends "layouts/app_shell.html" %}
+{% block title %}Finalize logbook{% endblock %}
+{% block content %}
+<p class="eyebrow">Final review</p>
+<h1>Finalize logbook</h1>
+{% if sel %}
+<p class="muted">{{ sel.full_name }} · {{ sel.placement.company_name }}</p>
+{% set p = sel.placement %}
+<div class="finalize-grid">
+  <div>
+    <div class="card"><h2>Finalization checklist</h2><p class="muted">All checks must pass before a verified PDF can be issued.</p>
+      <div class="check-row"><div><strong>All weeks approved</strong><small>{{ checks.approved }} of {{ checks.needed }} weeks approved</small></div>
+        <span class="chip {{ 'ok' if checks.weeks_ok else 'bad' }}"><span class="dot"></span>{{ 'Complete' if checks.weeks_ok else 'Not yet' }}</span></div>
+      <div class="check-row"><div><strong>No open flags</strong><small>{{ checks.flags }} open</small></div>
+        <span class="chip {{ 'ok' if checks.flags_ok else 'bad' }}"><span class="dot"></span>{{ 'Complete' if checks.flags_ok else 'Review needed' }}</span></div>
+      <div class="check-row"><div><strong>Integrity verified</strong><small>{% if checks.integrity_ok %}Last checked {{ checks.result.checked_at|lagos }}{% else %}Problem found at event {{ checks.result.problem_seq }}{% endif %}</small></div>
+        <span class="chip {{ 'ok' if checks.integrity_ok else 'bad' }}"><span class="dot"></span>{{ 'Verified' if checks.integrity_ok else 'Problem' }}</span></div>
+    {% if not checks.ready %}<div class="banner warn"><strong>Not ready yet.</strong>
+      {% if not checks.weeks_ok %}Every week with working days must be approved. {% endif %}
+      {% if not checks.flags_ok %}Review the open flags. {% endif %}
+      {% if not checks.integrity_ok %}Fix the integrity problem first.{% endif %}</div>{% endif %}
+      <form method="post" action="{{ url_for('coordinator.finalize_generate', student_id=sel.id) }}" class="actions-row spread">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <span class="muted small">The issued copy includes a QR code and verification ID. A new copy replaces any earlier one.</span>
+        <button class="btn primary" type="submit" {{ 'disabled' if not checks.ready }}>Generate verified PDF</button></form>
+    </div>
+    {% if issued %}<div class="card" style="margin-top:16px"><h2>Issued copy</h2>
+      <p>Verification ID <strong>{{ issued.vid }}</strong> · issued {{ issued.issued_at|lagos }}</p>
+      <a class="btn" href="{{ url_for('coordinator.issued_download', vid=issued.vid) }}">Download PDF</a>
+      <a class="link" href="{{ url_for('verify.result', vid=issued.vid) }}">Open public verification page</a></div>{% endif %}
+  </div>
+  <aside>
+      <span class="logo" aria-hidden="true">▯</span>
+      <small><strong>{{ institution|upper }}</strong></small>
+      <small>STUDENT INDUSTRIAL WORK EXPERIENCE SCHEME (SIWES)</small>
+      <h3>INDUSTRIAL TRAINING LOGBOOK</h3><hr>
+      <strong>{{ sel.full_name|upper }}</strong>
+      <small>{{ sel.matric_number }} · {{ sel.department }}</small>
+      <small>{{ p.company_name }}</small>
+      <small>{{ p.start_date.strftime('%d %B') }} – {{ p.end_date.strftime('%d %B %Y') }}</small>
+      <div class="qr">QR code</div>
+      <small>Verification ID · assigned when issued</small>
+  </aside>
+</div>
+{% else %}
+<p class="muted">Choose a student.</p>
+<div class="card table-card">{% for p in rows %}<a class="week-row" href="{{ url_for('coordinator.finalize_student', student_id=p.student_id) }}"><span class="wk-no">{{ p.total_weeks }}</span>
+  <span><strong>{{ p.student.full_name }}</strong><br><small class="muted">{{ p.company_name }}</small></span>
+  <span class="chip {{ 'ok' if issued.get(p.student_id) else 'neutral' }}"><span class="dot"></span>{{ 'Issued ' ~ issued[p.student_id].vid if issued.get(p.student_id) else 'Not issued' }}</span></a>
+{% else %}<p class="empty">No placements yet.</p>{% endfor %}</div>
+{% endif %}
+{% endblock %}
