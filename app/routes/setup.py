@@ -19,7 +19,7 @@ def _limit():
 @limiter.limit(_limit, methods=["POST"])
 def first_run():
     if User.query.filter_by(role="coordinator").first():
-        abort(404)                      # already claimed: this page no longer exists
+        abort(404)
     expected = (current_app.config.get("SETUP_TOKEN") or "").strip()
     form = FirstRunForm()
     problems, error = [], None
@@ -36,25 +36,3 @@ def first_run():
                 return redirect(url_for("auth.sign_in_coordinator"))
     return render_template("setup/first_run.html", form=form, error=error,
                            problems=problems, enabled=bool(expected))
-
-@bp.route("/manifest.webmanifest")
-def manifest():
-    name = current_app.config["APP_NAME"]
-    data = {"name": name, "short_name": "SIWES", "start_url": "/", "scope": "/", "display": "standalone",
-            "background_color": "#f6f7f5", "theme_color": "#1b5e44",
-            "icons": [{"src": "/static/img/icon-192.png", "sizes": "192x192", "type": "image/png"},
-                      {"src": "/static/img/icon-512.png", "sizes": "512x512", "type": "image/png"}]}
-    return Response(json.dumps(data), mimetype="application/manifest+json")
-
-
-@bp.route("/sw.js")
-def service_worker():
-    resp = send_from_directory(current_app.static_folder, "js/sw.js", mimetype="application/javascript")
-    resp.headers["Service-Worker-Allowed"] = "/"
-    resp.headers["Cache-Control"] = "no-cache"
-    return resp
-
-
-@bp.route("/offline")
-def offline():
-    return render_template("meta/offline.html")

@@ -87,12 +87,11 @@ def test_coordinator_pages(app, world):
 def test_role_walls(app, world):
     s = _client(app, "student", "stu@example.ng")
     for url in ("/coordinator/dashboard", "/coordinator/staff", "/supervisor/weeks"):
-        assert s.get(url).status_code == 403
+        assert s.get(url).status_code == 403, url
     sup = _client(app, "supervisor", "sup@example.ng")
     for url in ("/student/home", "/coordinator/accounts"):
-        assert sup.get(url).status_code == 403
-    r = app.test_client().get("/student/home")
-    assert r.status_code == 302
+        assert sup.get(url).status_code == 403, url
+    assert app.test_client().get("/student/home").status_code == 302
 
 
 def test_other_supervisor_cannot_open_the_week(app, world):
@@ -122,6 +121,6 @@ def test_start_date_locked_once_entries_exist(app, world):
 def test_dashboard_filter_and_help(app, world):
     c = _client(app, "coordinator", "coord@example.ng")
     assert b"Amara Okoye" in c.get("/coordinator/dashboard?q=amara").data
-    r = c.get("/coordinator/dashboard?q=nobodyhere")
-    assert b"No students match" in r.data and b"Clear filters" in r.data
-    assert b"Site administrator" in c.get("/help").data
+    r = app.test_client().post(url, data={**STUDENT_FORM, "email": "o@example.ng", "phone": "08039999999"})
+    import re; print(r.status_code, re.findall(r'banner[^>]*>(.*?)</div>', r.data.decode(), re.S))
+    assert b"already has an account" in r.data

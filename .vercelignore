@@ -1,0 +1,10 @@
+.venv
+venv
+instance
+.env
+tests
+deploy
+scripts
+docs
+__pycache__
+.pytest_cache

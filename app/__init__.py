@@ -7,7 +7,7 @@ from flask_login import current_user
 
 def create_app(config_name=None):
     config_name = config_name or os.environ.get("APP_ENV", "dev")
-    app = Flask(__name__)
+    app = Flask(__name__, instance_path="/tmp/instance" if os.environ.get("VERCEL") else None)
     app.config.from_object(CONFIGS[config_name])
     if config_name == "prod":
         if app.config["MAIL_BACKEND"] != "smtp":

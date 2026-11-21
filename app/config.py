@@ -4,9 +4,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+basedir = os.path.abspath(os.path.dirname(__file__))
+
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-only-secret-change-me'
     HMAC_KEY = os.environ.get("HMAC_KEY", "dev-only-change-me")
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'app.db')
