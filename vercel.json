@@ -1,3 +1,4 @@
 {
-  "routes": [{ "src": "/(.*)", "dest": "/api/index" }]
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [{ "path": "/internal/cron/nightly", "schedule": "0 22 * * *" }]
 }

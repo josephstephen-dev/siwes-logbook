@@ -1,3 +1,4 @@
+import io
 from types import SimpleNamespace
 
 from flask import abort, flash, redirect, render_template, request, send_file, url_for, current_app
@@ -13,7 +14,7 @@ from ..models.user import User
 from ..models.verification import IssuedLogbook
 from ..models.week import WeekRecord
 from ..services import audit_chain, detection, pdf_report, weeks
-from ..services import finalize as finalize_svc
+from ..services import finalize as finalize_svc, uploads
 from ..services.invitations import now
 from ..services.permissions import role_required
 from .coordinator import _person, bp
@@ -203,8 +204,8 @@ def finalize_generate(student_id):
 @role_required("coordinator")
 def issued_download(vid):
     rec = IssuedLogbook.query.filter_by(vid=vid).first()
-    if not rec:
+    data = uploads.read(rec.filename) if rec else None
+    if not data:
         abort(404)
-    import os
-    return send_file(os.path.join(pdf_report.issued_dir(), rec.filename), mimetype="application/pdf",
+    return send_file(io.BytesIO(data), mimetype="application/pdf",
                      as_attachment=True, download_name=f"{rec.vid}.pdf")

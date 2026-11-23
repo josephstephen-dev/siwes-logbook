@@ -27,6 +27,7 @@ from ..models.verification import IssuedLogbook
 from ..models.week import WeekRecord
 from . import audit_chain, uploads, weeks
 from .invitations import now, public_url
+from ..models.stored_file import StoredFile
 
 ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
@@ -206,12 +207,13 @@ def build(student, vid, issued_by=None):
                   P("(Additional drawing, may be attached where necessary) The student may use the space for additional reports", note),
                   Spacer(1, 4 * mm)]
         for a in wk.attachments:
-            path = uploads.path_for(a.stored_name)
-            if os.path.exists(path):
-                with PILImage.open(path) as im:
+            data = uploads.read(a.stored_name)
+            if data:
+                with PILImage.open(io.BytesIO(data)) as im:
                     w, h = im.size
                 k = min(W / w, 85 * mm / h)
-                story.append(KeepTogether([Image(path, w * k, h * k), P(a.caption or "", small), Spacer(1, 3 * mm)]))
+                story.append(KeepTogether([Image(io.BytesIO(data), w * k, h * k),
+                                           P(a.caption or "", small), Spacer(1, 3 * mm)]))
         if wk.report:
             story += [P(wk.report), Spacer(1, 4 * mm)]
         elif not wk.attachments:
@@ -247,8 +249,7 @@ def issue(student, by):
     pdf = build(student, vid, by)
     ev = audit_chain.append(student.id, "logbook_issued", {"vid": vid})
     name = f"{vid}.pdf"
-    with open(os.path.join(issued_dir(), name), "wb") as fh:
-        fh.write(pdf)
+    db.session.add(StoredFile(name=name, mime="application/pdf", data=pdf))
     for old in IssuedLogbook.query.filter_by(student_id=student.id, revoked_at=None):
         old.revoked_at = now()
     p = student.placement

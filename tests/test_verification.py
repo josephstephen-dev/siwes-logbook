@@ -7,7 +7,7 @@ from app.extensions import db
 from app.models.entry import Entry
 from app.models.placement import Placement
 from app.models.user import User
-from app.services import approvals, finalize, pdf_report, weeks
+from app.services import approvals, finalize, pdf_report, weeks, uploads
 
 
 def test_issue_verify_and_tamper(app, client, monkeypatch, tmp_path):
@@ -24,7 +24,7 @@ def test_issue_verify_and_tamper(app, client, monkeypatch, tmp_path):
         approvals.approve_week(sup, wk, "Good", "Chinedu Okafor", "Engineer")
         assert finalize.checklist(st).ready
         rec = pdf_report.issue(st, coord)
-        pdf = open(f"{tmp_path}/{rec.filename}", "rb").read()
+        pdf = uploads.read(rec.filename)
 
     r = client.get(f"/v/{rec.vid}")
     assert b"NOT VALID" not in r.data and b"VALID" in r.data

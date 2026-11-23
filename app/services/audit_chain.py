@@ -109,10 +109,13 @@ def make_checkpoint():
 def publish(cp):
     """Copies the checkpoint outside the database: a log file and an email to every coordinator."""
     from .notifications import send_email
-    path = os.path.join(current_app.instance_path, "checkpoints.log")
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "a") as f:
-        f.write(f"{cp.stamp} {cp.digest}\n")
+    try:
+        path = os.path.join(current_app.instance_path, "checkpoints.log")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "a") as f:
+            f.write(f"{cp.stamp} {cp.digest}\n")
+    except OSError:
+        current_app.logger.info("No writable log file here; the checkpoint is published by email only.")
     for c in User.query.filter_by(role="coordinator", status="active"):
         send_email(c.email, f"SIWES daily checkpoint {cp.stamp[:10]}",
                    "This is the daily record checkpoint. Keep this email: it lets issued "
@@ -129,8 +132,9 @@ def audit_checkpoints():
     """Checks stored checkpoints against their own fingerprint, the external log file, and each other."""
     problems, seen = [], {}
     path = os.path.join(current_app.instance_path, "checkpoints.log")
+    have_log = os.path.exists(path)
     logged = set()
-    if os.path.exists(path):
+    if have_log:
         with open(path) as fh:
             logged = {p[1] for p in (line.split() for line in fh) if len(p) == 2}
     for cp in Checkpoint.query.order_by(Checkpoint.id):

@@ -1,28 +1,19 @@
 import io
-import os
 import uuid
 
-from flask import current_app
 from PIL import Image, ImageOps, UnidentifiedImageError
 
-MAX_BYTES = 5 * 1024 * 1024
+from ..extensions import db
+from ..models.stored_file import StoredFile
 
-
-def _dir():
-    path = current_app.config.get("UPLOAD_DIR") or os.path.join(current_app.instance_path, "uploads")
-    os.makedirs(path, exist_ok=True)
-    return path
-
-
-def path_for(name):
-    return os.path.join(_dir(), os.path.basename(name))
+MAX_BYTES = 4 * 1024 * 1024
 
 
 def save_image(storage):
-    """Only real JPG/PNG images get through; they are re-encoded, which drops hidden data."""
+    """Only real JPG/PNG images get through. They are re-encoded, which drops hidden data."""
     data = storage.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
-        raise ValueError("Each image must be 5 MB or less.")
+        raise ValueError("Each image must be 4 MB or less.")
     try:
         Image.open(io.BytesIO(data)).verify()
         img = Image.open(io.BytesIO(data))
@@ -34,16 +25,25 @@ def save_image(storage):
         raise ValueError("Upload a JPG or PNG photo.")
     img = ImageOps.exif_transpose(img)
     img.thumbnail((2000, 2000))
-    name = uuid.uuid4().hex + (".png" if fmt == "PNG" else ".jpg")
+    out = io.BytesIO()
     if fmt == "JPEG":
-        img.convert("RGB").save(path_for(name), "JPEG", quality=85)
+        img.convert("RGB").save(out, "JPEG", quality=85)
+        ext, mime = ".jpg", "image/jpeg"
     else:
-        img.save(path_for(name), "PNG")
-    return name, os.path.getsize(path_for(name))
+        img.save(out, "PNG")
+        ext, mime = ".png", "image/png"
+    payload = out.getvalue()
+    name = uuid.uuid4().hex + ext
+    db.session.add(StoredFile(name=name, mime=mime, data=payload))
+    return name, len(payload)
+
+
+def read(name):
+    row = db.session.get(StoredFile, name)
+    return row.data if row else None
 
 
 def remove(name):
-    try:
-        os.remove(path_for(name))
-    except FileNotFoundError:
-        pass
+    row = db.session.get(StoredFile, name)
+    if row:
+        db.session.delete(row)

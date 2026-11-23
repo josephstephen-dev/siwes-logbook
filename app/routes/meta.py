@@ -1,6 +1,7 @@
 import json
+import hmac
 
-from flask import (Blueprint, Response, current_app, render_template,
+from flask import (Blueprint, Response, current_app, abort, request, render_template,
                    send_from_directory)
 from flask_login import current_user, login_required
 from sqlalchemy import text
@@ -76,3 +77,17 @@ def service_worker():
 @bp.route("/offline")
 def offline():
     return render_template("meta/offline.html")
+
+@bp.route("/internal/cron/nightly")
+def cron_nightly():
+    secret = current_app.config.get("CRON_SECRET") or ""
+    sent = request.headers.get("Authorization", "")
+    if not secret or not hmac.compare_digest(sent, f"Bearer {secret}"):
+        abort(404)
+    from ..models.placement import Placement
+    from ..services import audit_chain, detection
+    bad = sum(1 for (sid,) in db.session.query(Placement.student_id).all()
+              if not audit_chain.run_check(sid).ok)
+    cp = audit_chain.make_checkpoint()
+    audit_chain.publish(cp)
+    return {"problems": bad, "checkpoint": cp.digest, "new_flags": detection.scan(since_days=3)}

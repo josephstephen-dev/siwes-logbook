@@ -63,7 +63,7 @@ class Config:
     SUPPORT_PHONE = os.environ.get("SUPPORT_PHONE", "")
     SUPPORT_WHATSAPP = os.environ.get("SUPPORT_WHATSAPP", "")      # digits with country code, no +
     DEFAULT_COUNTRY_CODE = os.environ.get("DEFAULT_COUNTRY_CODE", "234")
-
+    CRON_SECRET = os.environ.get("CRON_SECRET", "")
 
 class DevConfig(Config):
     DEBUG = True
@@ -73,6 +73,9 @@ class ProdConfig(Config):
     SESSION_COOKIE_SECURE = True
     REMEMBER_COOKIE_SECURE = True
     PREFERRED_URL_SCHEME = "https"
+    # serverless: keep the connection pool tiny
+    SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True, "pool_recycle": 300,
+                                 "pool_size": 1, "max_overflow": 2}
 
 
 class TestConfig(Config):

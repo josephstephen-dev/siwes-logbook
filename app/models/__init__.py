@@ -9,6 +9,7 @@ from .audit_log import AuditEvent
 from .checkpoint import Checkpoint, IntegrityResult
 from .flag import Flag
 from .verification import IssuedLogbook
+from .stored_file import StoredFile
 
 __all__ = ["User", "Placement", "JoinLink", "Setting", "Entry", "EntryVersion", "WeekRecord",
-           "Attachment", "AuditEvent", "Checkpoint", "IntegrityResult", "Flag", "IssuedLogbook"]
+           "Attachment", "AuditEvent", "Checkpoint", "IntegrityResult", "Flag", "IssuedLogbook", "StoredFile"]
