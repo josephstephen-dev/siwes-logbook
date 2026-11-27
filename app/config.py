@@ -1,16 +1,33 @@
 import os
 from datetime import timedelta
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from dotenv import load_dotenv
 
 load_dotenv()
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
+def database_uri():
+    """Reads the database address the way hosts hand it out and fixes what SQLAlchemy rejects:
+    - postgres://  ->  postgresql://   (Vercel, Neon, Heroku-style links)
+    - the extra ?supa= / ?pgbouncer= options that the Postgres driver does not understand
+    """
+    raw = (os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL") or "").strip().strip("\"'")
+    if not raw:
+        return "sqlite:///" + os.path.join(basedir, "app.db")
+    if raw.startswith("postgres://"):
+        raw = "postgresql://" + raw[len("postgres://"):]
+    if raw.startswith("postgresql"):
+        parts = urlsplit(raw)
+        keep = [(k, v) for k, v in parse_qsl(parts.query) if k not in ("supa", "pgbouncer")]
+        raw = urlunsplit(parts._replace(query=urlencode(keep)))
+    return raw
+
+
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-only-secret-change-me'
     HMAC_KEY = os.environ.get("HMAC_KEY", "dev-only-change-me")
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///' + os.path.join(basedir, 'app.db')
+    SQLALCHEMY_DATABASE_URI = database_uri()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Sessions: idle timeout of 30 minutes (refreshed on each request)
@@ -73,9 +90,13 @@ class ProdConfig(Config):
     SESSION_COOKIE_SECURE = True
     REMEMBER_COOKIE_SECURE = True
     PREFERRED_URL_SCHEME = "https"
-    # serverless: keep the connection pool tiny
-    SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True, "pool_recycle": 300,
-                                 "pool_size": 1, "max_overflow": 2}
+    # serverless: keep the connection pool tiny (these pool options only suit PostgreSQL)
+    if Config.SQLALCHEMY_DATABASE_URI.startswith("postgresql"):
+        SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True, "pool_recycle": 300,
+                                     "pool_size": 1, "max_overflow": 2,
+                                     "connect_args": {"connect_timeout": 10}}
+    else:
+        SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
 
 
 class TestConfig(Config):

@@ -6,7 +6,9 @@ from flask_login import current_user
 
 
 def create_app(config_name=None):
-    config_name = config_name or os.environ.get("APP_ENV", "dev")
+    # On Vercel (which sets VERCEL=1) always run in production mode unless told otherwise.
+    # Dev mode there would turn every error into the blank "This page is unavailable" screen.
+    config_name = config_name or os.environ.get("APP_ENV") or ("prod" if os.environ.get("VERCEL") else "dev")
     app = Flask(__name__, instance_path="/tmp/instance" if os.environ.get("VERCEL") else None)
     app.config.from_object(CONFIGS[config_name])
     if config_name == "prod":

@@ -1,5 +1,6 @@
 import json
 import hmac
+import os
 
 from flask import (Blueprint, Response, current_app, abort, request, render_template,
                    send_from_directory)
@@ -36,9 +37,14 @@ def sitemap():
 def healthz():
     try:
         db.session.execute(text("select 1"))
+        User.query.filter_by(role="coordinator").first()      # fails if the tables were never created
         return {"status": "ok"}
-    except Exception:
-        return {"status": "error"}, 503
+    except Exception as e:
+        db.session.rollback()
+        body = {"status": "error"}
+        if os.environ.get("SHOW_BOOT_ERRORS") == "1":          # temporary switch, see deployment steps
+            body["detail"] = f"{type(e).__name__}: {str(e)[:400]}"
+        return body, 503
 
 
 @bp.route("/privacy")
